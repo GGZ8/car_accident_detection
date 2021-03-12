@@ -1,0 +1,9 @@
+https://www.makerslab.it/sensore-di-distanza-ad-ultrasuoni-hc-sr04-con-arduino/#:~:text=Detto%20questo%20convertiamo%20la%20velocit%C3%A0,0%2C03431%20cm%2Fmicrosecondi.
+
+https://create.arduino.cc/projecthub/luis-roda-sanchez/carfox-a-device-to-find-them-all-105573?ref=tag&ref_id=iot&offset=94
+
+https://www.giuseppecaccavale.it/arduino/roll-pitch-e-yaw-con-mpu6050-arduino/
+
+https://lastminuteengineers.com/neo6m-gps-arduino-tutorial/
+
+

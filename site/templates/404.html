@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+    <body>
+        <div class="container-fluid">
+            <div class="row text-center justify-content-center">
+                <div class="col-4">
+                    <img src="{{ url_for('static', filename='img/accident_1.png') }}" alt="404 Page not found!" id="img">
+                    <br><br><br><br>
+                    <div class="text-center">
+                        <h1>404 Page not found!</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+{% endblock content %}
+
+{% block scripts %}
+{% endblock scripts %}

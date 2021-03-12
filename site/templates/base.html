@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        {% block head %}
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
+
+        {% block styles %}
+            <!-- Bootstrap CSS -->
+            {{ bootstrap.load_css() }}
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" type="text/css" media="(prefers-color-scheme: dark)">
+            <link rel="stylesheet" href="{{ url_for('static', filename='css/my.css') }}" type="text/css">
+            <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/x-icon">
+            <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.2/css/all.css" type="text/css">
+        {% endblock %}
+
+        <title>Car Accident Detection</title>
+        {% endblock %}
+    </head>
+    <body>
+        <!-- Page content -->
+        {% block content %}
+
+        {% endblock %}
+
+    </body>
+    {{ bootstrap.load_js() }}
+
+    {% block scripts %}
+    {% endblock %}
+
+</html>

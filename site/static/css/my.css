@@ -1,0 +1,58 @@
+html, body {
+    height: 100%;
+}
+
+.container-fluid {
+    padding-top: 2%;
+    padding-right: 2%;
+    padding-left: 2%;
+    margin-right: auto;
+    margin-left: auto;
+    height: 100%;
+}
+
+.row {
+    height: 85%;
+}
+
+#pos {
+    height: 100%;
+}
+
+#pos .card-header{
+    background: linear-gradient(90deg, #0093E9 0%, #4eac9d 100%);
+}
+
+#map{
+    height: 100%;
+}
+
+#info {
+    display: none;
+    width: 400px;
+}
+
+#info .card-header{
+    background: linear-gradient(90deg, #F76B1C 0%, #FAD961 100%);
+}
+
+#info .card-body{
+    margin: 2%;
+}
+
+#data .fa-stack .fa-circle {
+    color: white;
+}
+
+.centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: black;
+}
+
+#my_alert {
+    display: none;
+    align-items: start;
+}
