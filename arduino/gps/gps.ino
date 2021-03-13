@@ -1,16 +1,17 @@
 #include "TinyGPS++.h"
 
 TinyGPSPlus gps;
-bool done;
+long timer;
 
 void setup()  {
   Serial1.begin(9600);
   Serial.begin(115200);
-  done = false;
+  timer = 0;
 }
 
 void loop() {
-  if(!done){
+  if(millis() - timer > 1000){
+    timer = millis();
     while (Serial1.available() > 0){
       gps.encode(Serial1.read());
       if(gps.date.isValid() && gps.location.isValid() && gps.time.isValid()){
@@ -37,5 +38,4 @@ void printData(){
   Serial.print(F(":"));
   Serial.println(gps.time.second());
   Serial.println("--------------------------------------------"); 
-  done = true;
 }

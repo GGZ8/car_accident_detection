@@ -30,7 +30,7 @@ TinyGPSPlus gps;
 #include "print_information.h"
 
 //Variabile usata per controllare i dati a intervalli regolari
-long interval;
+unsigned long prev_millis;
 
 //Variabili
 long time_passed;   //  Tempo che impieghera' il suono a percorrere una certa distanza
@@ -67,19 +67,19 @@ void setup()  {
   digitalWrite(trigger, LOW);
 
   time_passed = distance = Pitch = Roll = X = Y = Z = 0;
-  interval = millis();
+  prev_millis = millis();
   no_data = true;
 }
 
 
 void loop(){
-  if(millis() - interval > 1000){
-    interval = millis();
-    read_ultrasonic_data();
-    print_ultrasonic_data();
-    read_gps_data();
-    print_gps_data();
-    read_imu_data();
+  //read_ultrasonic_data();
+  //read_gps_data();
+  read_imu_data();
+  if(millis() - prev_millis > 100){
+    prev_millis = millis();
+    //print_ultrasonic_data();
+    //print_gps_data();
     print_imu_data();
   }
 }
