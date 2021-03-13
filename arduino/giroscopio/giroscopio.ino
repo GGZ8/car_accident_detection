@@ -95,8 +95,6 @@ void acquisisco_dati(){
   //Calculate X,Y rotation angle
   Roll = (atan2(-Y, Z) * 180.0) / M_PI;
   Pitch = (atan2(-X, Z) * 180.0) / M_PI;
-
-
 }
 
 void stampa_dati(){

@@ -3,7 +3,10 @@ https://www.makerslab.it/sensore-di-distanza-ad-ultrasuoni-hc-sr04-con-arduino/#
 https://create.arduino.cc/projecthub/luis-roda-sanchez/carfox-a-device-to-find-them-all-105573?ref=tag&ref_id=iot&offset=94
 
 https://www.giuseppecaccavale.it/arduino/roll-pitch-e-yaw-con-mpu6050-arduino/
+https://iemma.it/blog/playing-with-mpu-6050
 
 https://lastminuteengineers.com/neo6m-gps-arduino-tutorial/
 
+
+https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6
 
