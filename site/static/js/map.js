@@ -146,7 +146,10 @@ function updateMarkers(data){
     close();
   });
   let car_pos = {'lat': data.lat, 'lng': data.lng}
-  geocodeLatLng(geocoder, car_pos, info_window);
+  var dev = '{{ development }}';
+  if(!dev){
+    geocodeLatLng(geocoder, car_pos, info_window);
+  }
 
   const icon = {
     url: "./static/img/pin.png", // url

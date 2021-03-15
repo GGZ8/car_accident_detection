@@ -40,7 +40,7 @@ def index():
         except Exception as e:
             logging.info(f"ERROR: {e}")
     print(Setting.DEBUG)
-    return render_template('index.html', google_api=google_api, develpment=Setting.DEBUG)
+    return render_template('index.html', google_api=google_api, development=Setting.DEBUG)
 
 
 @app.errorhandler(404)

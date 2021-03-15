@@ -37,8 +37,8 @@ class Accident(db.Model):
     frontal = Column(Boolean, nullable=False)
     tilt = Column(Boolean, nullable=False)
     fall = Column(Boolean, nullable=False)
-    lat = Column(Float, nullable=False)
-    lng = Column(Float, nullable=False)
+    lat = Column(Float(precision=32), nullable=False)
+    lng = Column(Float(precision=32), nullable=False)
     reported = Column(Boolean, nullable=False)
 
     @property

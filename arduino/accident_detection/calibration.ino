@@ -171,6 +171,11 @@ void mpu_init(){
 }
 
 void setup_imu(){
+  Wire.beginTransmission(MPU_addr);
+  Wire.write(0x6B);  // PWR_MGMT_1 register
+  Wire.write(0);     // set to zero (wakes up the MPU-6050)
+  Wire.endTransmission(true);
+ 
   if(!accelgyro.testConnection()){
     DEBUG_SERIAL.print("ERROR CONNETCING TO IMU: CHECK WIRING");
     while(1);
@@ -178,12 +183,12 @@ void setup_imu(){
   else{
     #ifdef DEBUG
       //Default setting dopo diverse calibrazioni
-      accelgyro.setXAccelOffset(2757);
-      accelgyro.setYAccelOffset(766);
-      accelgyro.setZAccelOffset(1702);
-      accelgyro.setXGyroOffset(34);
-      accelgyro.setYGyroOffset(23);
-      accelgyro.setZGyroOffset(37);
+      accelgyro.setXAccelOffset(2643);
+      accelgyro.setYAccelOffset(752);
+      accelgyro.setZAccelOffset(1675);
+      accelgyro.setXGyroOffset(29);
+      accelgyro.setYGyroOffset(28);
+      accelgyro.setZGyroOffset(35);
     #else
       //Funzione di calibrazione dell'IMU
       mpu_init();

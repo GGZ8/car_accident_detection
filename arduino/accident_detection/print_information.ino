@@ -11,31 +11,28 @@ void end(){
 
 void print_gps_data(){
   char sensor_name[] = "GPS";
-  start(&sensor_name[0]);
-  if(!no_data){
-    DEBUG_SERIAL.print(gps.location.lat(), 6);
-    DEBUG_SERIAL.print(","); 
-    DEBUG_SERIAL.println(gps.location.lng(), 6);
-    DEBUG_SERIAL.print(gps.date.day());
-    DEBUG_SERIAL.print(F("/"));
-    DEBUG_SERIAL.print(gps.date.month());
-    DEBUG_SERIAL.print(F("/"));
-    DEBUG_SERIAL.println(gps.date.year());
-    DEBUG_SERIAL.print(gps.time.hour());
-    DEBUG_SERIAL.print(F(":"));
-    DEBUG_SERIAL.print(gps.time.minute());
-    DEBUG_SERIAL.print(F(":"));
-    DEBUG_SERIAL.println(gps.time.second());
-  }
-  else{
-    DEBUG_SERIAL.println("NO DATA");
-  }
-  end();
+  //start(&sensor_name[0]);
+  DEBUG_SERIAL.print(gps.location.lat(), 6);
+  DEBUG_SERIAL.print(","); 
+  DEBUG_SERIAL.println(gps.location.lng(), 6);
+  DEBUG_SERIAL.println(gps.date.value());
+  DEBUG_SERIAL.print(gps.date.day());
+  DEBUG_SERIAL.print(F("/"));
+  DEBUG_SERIAL.print(gps.date.month());
+  DEBUG_SERIAL.print(F("/"));
+  DEBUG_SERIAL.println(gps.date.year());
+  
+  DEBUG_SERIAL.print(gps.time.hour());
+  DEBUG_SERIAL.print(F(":"));
+  DEBUG_SERIAL.print(gps.time.minute());
+  DEBUG_SERIAL.print(F(":"));
+  DEBUG_SERIAL.println(gps.time.second());
+  //end();
 }
 
 void print_imu_data(){
   char sensor_name[] = "IMU";
-  start(&sensor_name[0]);
+  //start(&sensor_name[0]);
   DEBUG_SERIAL.print("AcX = ");
   DEBUG_SERIAL.print(AcX);
   DEBUG_SERIAL.print(" | AcY = ");
@@ -49,7 +46,7 @@ void print_imu_data(){
   DEBUG_SERIAL.print((int)Roll);
   DEBUG_SERIAL.print(" | Pitch = ");
   DEBUG_SERIAL.println((int)Pitch);
-  end();
+  //end();
 }
 
 
@@ -62,8 +59,8 @@ void print_flame_light_data(){
 
 void print_ultrasonic_data(){
     char sensor_name[] = "SON";
-    start(&sensor_name[0]);
+    //start(&sensor_name[0]);
     DEBUG_SERIAL.print("Distanza :");
     DEBUG_SERIAL.println(distance);
-    end();
+    //end();
 }

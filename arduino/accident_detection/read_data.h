@@ -1,6 +1,6 @@
 #pragma once
 
-void read_imu_data();
-void read_flame_light_data();
-void read_gps_data();
-void read_ultrasonic_data();
+void update_imu_data();
+void update_flame_light_data();
+bool update_gps_data();
+void update_ultrasonic_data();

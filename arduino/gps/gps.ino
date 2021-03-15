@@ -5,25 +5,30 @@ long timer;
 
 void setup()  {
   Serial1.begin(9600);
-  Serial.begin(115200);
-  timer = 0;
+  Serial.begin(9600);
+  timer = millis();
 }
 
 void loop() {
-  if(millis() - timer > 1000){
+  read_data();
+  if(millis() - timer > 100){
     timer = millis();
-    while (Serial1.available() > 0){
-      gps.encode(Serial1.read());
-      if(gps.date.isValid() && gps.location.isValid() && gps.time.isValid()){
-        printData();
-        break;    
-      }
-    }
+    printData();
+  }
+}
+
+void read_data(){
+  while (Serial1.available() > 0){
+    //Serial.println("LEGGO");
+    Serial.write(Serial1.read());
+    //gps.encode(Serial1.read());
+    //if(gps.date.isValid() && gps.location.isValid() && gps.time.isValid()){
+    //  break;    
+    //}
   }
 }
 
 void printData(){
-  Serial.println("\n--------------------------------------------"); 
   Serial.print(gps.location.lat(), 6);
   Serial.print(","); 
   Serial.println(gps.location.lng(), 6);
@@ -37,5 +42,4 @@ void printData(){
   Serial.print(gps.time.minute());
   Serial.print(F(":"));
   Serial.println(gps.time.second());
-  Serial.println("--------------------------------------------"); 
 }

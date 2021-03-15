@@ -10,7 +10,7 @@ long timer;
 
 void setup() {
   //abilito la comunicaizone seriale per rendermi conto di cio' che accade
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   //settiamo il funzionamento dei pin
   pinMode(trigger, OUTPUT);

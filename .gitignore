@@ -1,6 +1,7 @@
 #Mie
 .idea/
 secret.py
+test.sqlite
 
 
 # Byte-compiled / optimized / DLL files

@@ -1,4 +1,4 @@
-void read_imu_data(){
+void update_imu_data(){
   // Inizio trasmissione con il dispositivo I2C
   Wire.beginTransmission(MPU_addr);
   // Indirizzo di inizio della lettura
@@ -14,9 +14,9 @@ void read_imu_data(){
   Tmp = Wire.read() << 8 | Wire.read();
 
   //Normalizing data
-  X = AcX * alpha + (AcX * (1.0 - alpha));
-  Y = AcY * alpha + (AcY * (1.0 - alpha)); 
-  Z = AcZ * alpha + (AcZ * (1.0 - alpha));
+  float X = AcX * alpha + (AcX * (1.0 - alpha));
+  float Y = AcY * alpha + (AcY * (1.0 - alpha)); 
+  float Z = AcZ * alpha + (AcZ * (1.0 - alpha));
   AcX = (float)AcX / 16384.0;
   AcY = (float)AcY / 16384.0;
   AcZ = (float)AcZ / 16384.0;
@@ -27,24 +27,24 @@ void read_imu_data(){
   Pitch = (atan2(-X, Z) * 180.0) / M_PI;
 }
 
-void read_flame_light_data(){
+void update_flame_light_data(){
   flame_val = analogRead(flame);
   light_val = analogRead(light);
 }
 
-void read_gps_data(){
+bool update_gps_data(){
   //Finchè ci sono dati sulla seriale li leggo
   while (Serial1.available() > 0){
     gps.encode(Serial1.read());
-    if(gps.date.isValid() && gps.location.isValid() && gps.time.isValid()){
+    if(gps.date.isValid() && gps.location.isValid() && gps.time.isValid() && gps.time.isUpdated()){
       //Quando sono riuscito a leggere correttamente i dati esco
-      no_data = false;
-      break;    
+      return true;
     }
   }
+  return false;
 }
 
-void read_ultrasonic_data(){
+void update_ultrasonic_data(){
   //Invio un impulso HIGH sul pin del trigger
   digitalWrite(trigger, HIGH);
   //lo lascio al valore HIGH per 10 microsecondi
