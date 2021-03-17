@@ -14,6 +14,7 @@ void update_imu_data(){
   Tmp = Wire.read() << 8 | Wire.read();
 
   //Normalizing data
+  float alpha = 0.5;
   float X = AcX * alpha + (AcX * (1.0 - alpha));
   float Y = AcY * alpha + (AcY * (1.0 - alpha)); 
   float Z = AcZ * alpha + (AcZ * (1.0 - alpha));
@@ -23,13 +24,13 @@ void update_imu_data(){
   Tmp = Tmp / 340.00 + 36.53;
 
   //Calcolo rotazioni su asse X e Y
-  Roll = (atan2(-Y, Z) * 180.0) / M_PI;
-  Pitch = (atan2(-X, Z) * 180.0) / M_PI;
+  Roll = abs((atan2(-Y, Z) * 180.0) / M_PI);
+  Pitch = abs((atan2(X, sqrt(Y*Y + Z*Z)) * 180.0) / M_PI);
 }
 
 void update_flame_light_data(){
-  flame_val = analogRead(flame);
-  light_val = analogRead(light);
+  flame_val = analogRead(flame_pin);
+  light_val = analogRead(light_pin);
 }
 
 bool update_gps_data(){
@@ -46,15 +47,15 @@ bool update_gps_data(){
 
 void update_ultrasonic_data(){
   //Invio un impulso HIGH sul pin del trigger
-  digitalWrite(trigger, HIGH);
+  digitalWrite(trigger_pin, HIGH);
   //lo lascio al valore HIGH per 10 microsecondi
   delayMicroseconds(10);
   //lo riporto allo stato LOW
-  digitalWrite(trigger, LOW);
+  digitalWrite(trigger_pin, LOW);
 
   //ottengo il numero di microsecondi per i quali il PIN echo e' rimasto allo stato HIGH
   //per fare questo utilizzo la funzione pulseIn()
-  time_passed = pulseIn(echo, HIGH);
+  time_passed = pulseIn(echo_pin, HIGH);
 
   // La velocita' del suono e' di 340 metri al secondo, o 29 microsecondi al centimetro.
   // il nostro impulso viaggia in andata e ritorno, quindi per calcoalre la distanza

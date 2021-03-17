@@ -1,5 +1,4 @@
 
-
 void send_data(){
   uint32_t hour_tmp = gps.time.value();
   uint32_t date_tmp = gps.date.value();
@@ -35,13 +34,13 @@ void send_data(){
   Serial.write(date[2]);
   Serial.write(date[3]);
   //Frontal
-  Serial.write(1);
+  Serial.write(int(frontal));
   //Tilt
-  Serial.write(0);
+  Serial.write(int(tilt));
   //Fire
-  Serial.write(0);
+  Serial.write(int(fire));
   //Free Fall
-  Serial.write(1);
+  Serial.write(int(fall));
   //Temperature
   Serial.write(tmp[0]);
   Serial.write(tmp[1]);

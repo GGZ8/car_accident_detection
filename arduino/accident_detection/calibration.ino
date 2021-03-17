@@ -1,6 +1,6 @@
-int buffersize = 1000; //Amount of readings used to average, make it higher to get more precision but sketch will be slower  (default:1000)
-int acel_deadzone = 8; //Acelerometer error allowed, make it lower to get more precision, but sketch may not converge  (default:8)
-int giro_deadzone = 1; //Giro error allowed, make it lower to get more precision, but sketch may not converge  (default:1)
+int buffersize = 1000; //Numero di letture, più è alto e più ottengo precisione, ma sarà più lento il processo di calibrazione (default:1000)
+int acel_deadzone = 8; //Errore di tolleranza per l'accelerometro, più è basso più si ottiene precisione, ma può non convergere (default:8)
+int giro_deadzone = 1; //Errore di tolleranza per il giroscopio, più è basso più si ottiene precisione, ma può non convergere (default:1)
 
 int16_t ax, ay, az, gx, gy, gz;
 
@@ -158,7 +158,8 @@ void mpu_init(){
         Serial.print("\t");
         Serial.println(gz_offset); 
       #endif
-      delay(2);
+      delay(1000);
+      //Imposto i valori calcolati
 			accelgyro.setXAccelOffset(ax_offset);
 			accelgyro.setYAccelOffset(ay_offset);
 			accelgyro.setZAccelOffset(az_offset);
@@ -177,8 +178,9 @@ void setup_imu(){
   Wire.endTransmission(true);
  
   if(!accelgyro.testConnection()){
-    DEBUG_SERIAL.print("ERROR CONNETCING TO IMU: CHECK WIRING");
-    while(1);
+    DEBUG_SERIAL.println("ERROR CONNETCING TO IMU: CHECK WIRING");
+    DEBUG_SERIAL.println("TRYING REBOOTING");
+    reboot();
   }
   else{
     #ifdef DEBUG

@@ -18,6 +18,31 @@
 MPU6050 accelgyro;
 TinyGPSPlus gps;
 
+void(* reboot) (void) = 0;  //Funzione che permette il riavvio
+
+/*//-----------------------------------------------------------------------------------
+
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif  // __arm__
+ 
+int freeMemory() {
+  char top;
+#ifdef __arm__
+  return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+  return &top - __brkval;
+#else  // __arm__
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
+}
+
+
+//-----------------------------------------------------------------------------------
+*/
 
 #define DEBUG 1
 #define DEBUG_SERIAL if(DEBUG)Serial
@@ -25,24 +50,38 @@ TinyGPSPlus gps;
 //Pin utilizzati
 //Il modulo GPS usa la Serial1 per comunicare -> Rx1 = 19 e Tx1 = 18
 #define MPU_addr 0x68  //  I2C address of the GY-521
-#define flame A15      //  Input pin per la lettura del flame sensor
-#define light A14      //  Input pin per la lettura del light sensor
-#define trigger 8      //  Output pin trigger ultrasonic
-#define echo 9         //  Input pin per la ricezione del trigger
-#define buz 10         //  Output pin del buzzer
+#define flame_pin A15      //  Input pin per la lettura del flame sensor
+#define light_pin A14      //  Input pin per la lettura del light sensor
+#define trigger_pin 8      //  Output pin trigger ultrasonic
+#define echo_pin 9         //  Input pin per la ricezione del trigger
+#define buz_pin 10         //  Output pin del buzzer
 
 //Variabile usata per controllare i dati a intervalli regolari
 unsigned long prev_millis;
 
-//Variabili
+//Variabili ultrasonic
 long time_passed;   //  Tempo che impieghera' il suono a percorrere una certa distanza
 long distance;      //  La distanza che ha percorso il suono
 int flame_val;      //  Valore del flame sensor 
 int light_val;      //  Valore del light sensor
 
-double AcX, AcY, AcZ, Tmp;      //  Varaibli per la lettura dall'IMU
-float Roll, Pitch, alpha = 0.5; //  Angoli di rotazione (Pitch -> asse Y Roll -> asse X) 
+//Variabili accelerometro
+float AcX, AcY, AcZ, Tmp;            //  Varaibli per la lettura dall'IMU
+float Roll, Pitch;                   //  Angoli di rotazione (Pitch -> asse Y Roll -> asse X)
+float prec_acx, prec_acy, prec_acz;  //  Variabili utilizzata per il controllo degli incidenti laterali
+
 int serial_state, f_serial_state;
+bool frontal, tilt, fire, fall, detection;
+
+//Struttura dati contenente le soglie di attivazione
+struct threshold_t {
+  int temp;
+  int distance;
+  int tilt;
+  int fire;
+  int light;
+  float fall;
+}threshold;
 
 
 void setup()  {
@@ -57,19 +96,28 @@ void setup()  {
   setup_imu();
 
   //Pin setup
-  pinMode(flame, INPUT);
-  pinMode(light, INPUT);
-  pinMode(trigger, OUTPUT);
-  pinMode(echo, INPUT);
-  pinMode(buz, OUTPUT);
-  pinMode(13, OUTPUT);
+  pinMode(flame_pin, INPUT);
+  pinMode(light_pin, INPUT);
+  pinMode(trigger_pin, OUTPUT);
+  pinMode(echo_pin, INPUT);
+  pinMode(buz_pin, OUTPUT);
 
-  digitalWrite(echo, LOW);
-  digitalWrite(trigger, LOW);
-  noTone(buz);
+  digitalWrite(echo_pin, LOW);
+  digitalWrite(trigger_pin, LOW);
+  noTone(buz_pin);
 
   time_passed = distance = Pitch = Roll = serial_state = f_serial_state = 0;
   prev_millis = millis();
+  frontal = tilt = fire = fall = detection = false;
+  //Soglie di attivazioni, devono essere modificate per funzionare in casi reali
+  threshold.temp = 30;
+  threshold.tilt = 45;
+  threshold.fall = 0.1;
+  threshold.distance = 2;
+
+  /*accelgyro.setIntFreefallEnabled(1);
+  accelgyro.setFreefallDetectionThreshold(0x10);
+  accelgyro.setFreefallDetectionDuration(0x05);*/
 }
 
 
@@ -79,44 +127,92 @@ void loop(){
     update_imu_data();
     update_flame_light_data();
     update_ultrasonic_data(); //Devono passare almeno 50ms perchè se no le onde interferiscono
-    //print_ultrasonic_data();
-    /*if(distance <= 2){
-      accident_detection();
-    }*/
-    /*digitalWrite(13, HIGH);
-    delay(100);*/
-    print_imu_data();
-    //digitalWrite(13, LOW);
-    
+    if(check_condition()){
+      #ifdef DEBUG
+        print_data();
+        tone(buz_pin, 500);
+        delay(500);
+        noTone(buz_pin);
+        print_imu_data();
+        reset_fun();
+        delay(2000);
+      #else
+        accident_detection();
+      #endif
+    }
+    //plotter_imu_data();
   }
 }
 
-
 bool check_condition(){
+  //Frontal detect
+  if(distance <= threshold.distance)  frontal = true;
+
+  //Free Fall detect
+  if(AcZ + AcX + AcY > -threshold.fall && AcZ + AcX + AcY < threshold.fall) fall = true;
+
+  //Tilt detection
+  if(Pitch >= threshold.tilt || AcZ < 0) tilt = true;
+
+  //Check lateral crash
+  if(AcX - prec_acx > 1) detection = true;
+
+  //Check collision crash
+  if(AcY - prec_acy > 1) detection = true;
+
   
+  prec_acx = AcX;
+  prec_acy = AcY;
+  prec_acz = AcZ;
+  
+  return (frontal | tilt | fall | detection);
 }
 
 void accident_detection(){
-  tone(buz, 500);
+  tone(buz_pin, 500);
   //Continuo a leggere i dati finchè non sono validi
-  while(!update_gps_data()){}
-  send_data();
-  //Controllo che il bridge abbia ricevuto i dati
-  while(f_serial_state != 3){
-    if(Serial.available() > 0){
-      uint8_t c = Serial.read();
-      if(c == 'R' && serial_state == 0)  f_serial_state = 1;
-      if(c == 'E' && serial_state == 1)  f_serial_state = 2;
-      if(c == 'C' && serial_state == 2)  f_serial_state = 3;
+  //while(!update_gps_data()){}
+  #ifdef DEBUG
+    print_all();
+  #else
+    send_data();
+    //Controllo che il bridge abbia ricevuto i dati
+    while(f_serial_state != 3){
+      if(Serial.available() > 0){
+        uint8_t c = Serial.read();
+        if(c == 'R' && serial_state == 0)  f_serial_state = 1;
+        if(c == 'E' && serial_state == 1)  f_serial_state = 2;
+        if(c == 'C' && serial_state == 2)  f_serial_state = 3;
+      }
+      else{
+        //aspetto 10 secondi e rinvio i dati
+        delay(10000);
+        send_data();
+      }
+      serial_state = f_serial_state;
     }
-    else{
-      //aspetto un secondo e rinvio i dati
-      delay(1000);
-      send_data();
-    }
-    serial_state = f_serial_state;
-  }
-  noTone(buz);
-  while(true){} //INCIDENTE SEGNALATO E RICEVUTO CORRETTAMENTE ASPETTO RESET
-  f_serial_state = serial_state = 0;
+  #endif
+  noTone(buz_pin);
+  //INCIDENTE SEGNALATO E RICEVUTO CORRETTAMENTE ASPETTO RESET
+  delay(60000); //aspetto un minuto 
+  reset_fun(); //Riavvio l'arduino
+}
+
+void reset_fun(){
+  frontal = tilt = fire = fall = detection = false;
+  serial_state = f_serial_state = 0;
+}
+
+void print_data(){
+  DEBUG_SERIAL.print("Frontal = ");
+  DEBUG_SERIAL.print(frontal);
+  DEBUG_SERIAL.print(" | Fire = ");
+  DEBUG_SERIAL.print(fire);
+  DEBUG_SERIAL.print(" | Tilt = ");
+  DEBUG_SERIAL.print(tilt);
+  DEBUG_SERIAL.print(" | Fall = ");
+  DEBUG_SERIAL.print(fall);
+  DEBUG_SERIAL.print(" | Detection = ");
+  DEBUG_SERIAL.print(detection);
+  DEBUG_SERIAL.println();
 }
