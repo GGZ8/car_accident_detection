@@ -29,7 +29,9 @@ void update_imu_data(){
 }
 
 void update_flame_light_data(){
-  flame_val = analogRead(flame_pin);
+  flame_val = map(analogRead(flame_pin), 0, 1024, 1024, 0);
+  //light_val = map(analogRead(light_pin), 0, 1024, 0, 10);
+  //flame_val = analogRead(flame_pin);
   light_val = analogRead(light_pin);
 }
 

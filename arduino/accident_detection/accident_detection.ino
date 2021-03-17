@@ -110,11 +110,12 @@ void setup()  {
   prev_millis = millis();
   frontal = tilt = fire = fall = detection = false;
   //Soglie di attivazioni, devono essere modificate per funzionare in casi reali
-  threshold.temp = 30;
+  threshold.temp = 40;
   threshold.tilt = 45;
   threshold.fall = 0.1;
   threshold.distance = 2;
-
+  threshold.light = 1000;
+  threshold.fire = 500;
   /*accelgyro.setIntFreefallEnabled(1);
   accelgyro.setFreefallDetectionThreshold(0x10);
   accelgyro.setFreefallDetectionDuration(0x05);*/
@@ -140,25 +141,40 @@ void loop(){
         accident_detection();
       #endif
     }
+    //print_flame_light_data();
     //plotter_imu_data();
   }
 }
 
 bool check_condition(){
-  //Frontal detect
+  //Incidente frontale
   if(distance <= threshold.distance)  frontal = true;
 
-  //Free Fall detect
+  //Caduta libera
   if(AcZ + AcX + AcY > -threshold.fall && AcZ + AcX + AcY < threshold.fall) fall = true;
 
-  //Tilt detection
+  //Rilevazione di ribaltamento
   if(Pitch >= threshold.tilt || AcZ < 0) tilt = true;
 
-  //Check lateral crash
-  if(AcX - prec_acx > 1) detection = true;
+  //Incidente laterale
+  if(AcX - prec_acx > 1.2) detection = true;
 
-  //Check collision crash
-  if(AcY - prec_acy > 1) detection = true;
+  //Tamponamento
+  if(AcY - prec_acy > 1.2) detection = true;
+
+  //Fuoco
+  //Se non viene rilevata luce allora c'è sicuramente del fuoco
+  if(light_val < threshold.light && flame_val > threshold.fire){
+    DEBUG_SERIAL.println("FLAME & LIGHT");
+    fire = true;
+  }
+  //Se c'è luce, oltre a controllare il valore del flame sensor considero la temperatura
+  else if(light_val >= threshold.light && flame_val > threshold.fire){
+    if(Tmp >= threshold.temp){
+      DEBUG_SERIAL.println("FLAME & LIGHT & TEMP");
+      fire = true;
+    }
+  }
 
   
   prec_acx = AcX;
