@@ -44,7 +44,7 @@ int freeMemory() {
 //-----------------------------------------------------------------------------------
 */
 
-#define DEBUG 1
+#define DEBUG 0
 #define DEBUG_SERIAL if(DEBUG)Serial
 
 //Pin utilizzati
@@ -57,7 +57,7 @@ int freeMemory() {
 #define buz_pin 10         //  Output pin del buzzer
 
 //Variabile usata per controllare i dati a intervalli regolari
-unsigned long prev_millis;
+unsigned long prev_millis, flame_time;
 
 //Variabili ultrasonic
 long time_passed;   //  Tempo che impieghera' il suono a percorrere una certa distanza
@@ -72,12 +72,13 @@ float prec_acx, prec_acy, prec_acz;  //  Variabili utilizzata per il controllo d
 
 int serial_state, f_serial_state;
 bool frontal, tilt, fire, fall, detection;
+bool first_fire_detect, exec;
 
 //Struttura dati contenente le soglie di attivazione
 struct threshold_t {
-  int temp;
   int distance;
   int tilt;
+  int temp;
   int fire;
   int light;
   float fall;
@@ -109,16 +110,15 @@ void setup()  {
   time_passed = distance = Pitch = Roll = serial_state = f_serial_state = 0;
   prev_millis = millis();
   frontal = tilt = fire = fall = detection = false;
+  first_fire_detect = exec = false;
+  
   //Soglie di attivazioni, devono essere modificate per funzionare in casi reali
-  threshold.temp = 40;
+  threshold.temp = 60;
   threshold.tilt = 45;
   threshold.fall = 0.1;
   threshold.distance = 2;
-  threshold.light = 1000;
+  threshold.light = 985;
   threshold.fire = 500;
-  /*accelgyro.setIntFreefallEnabled(1);
-  accelgyro.setFreefallDetectionThreshold(0x10);
-  accelgyro.setFreefallDetectionDuration(0x05);*/
 }
 
 
@@ -130,19 +130,17 @@ void loop(){
     update_ultrasonic_data(); //Devono passare almeno 50ms perchè se no le onde interferiscono
     if(check_condition()){
       #ifdef DEBUG
+        print_all();
         print_data();
         tone(buz_pin, 500);
         delay(500);
         noTone(buz_pin);
-        print_imu_data();
         reset_fun();
         delay(2000);
       #else
         accident_detection();
       #endif
     }
-    //print_flame_light_data();
-    //plotter_imu_data();
   }
 }
 
@@ -165,14 +163,23 @@ bool check_condition(){
   //Fuoco
   //Se non viene rilevata luce allora c'è sicuramente del fuoco
   if(light_val < threshold.light && flame_val > threshold.fire){
-    DEBUG_SERIAL.println("FLAME & LIGHT");
+    DEBUG_SERIAL.println("NO LUCE, MA FUOCO");
     fire = true;
   }
+  
   //Se c'è luce, oltre a controllare il valore del flame sensor considero la temperatura
-  else if(light_val >= threshold.light && flame_val > threshold.fire){
-    if(Tmp >= threshold.temp){
-      DEBUG_SERIAL.println("FLAME & LIGHT & TEMP");
+  if(light_val >= threshold.light && flame_val > threshold.fire){
+    DEBUG_SERIAL.println("LUCE, CHECK FUOCO");
+    if(Tmp >= threshold.temp || (first_fire_detect && (millis() - flame_time > 30000))){
       fire = true;
+    }
+    else{
+      DEBUG_SERIAL.println("POSSIBILE FUOCO");
+      if(!exec) {
+        flame_time = millis();
+        exec = true;
+      }
+      first_fire_detect = true;
     }
   }
 
@@ -181,42 +188,39 @@ bool check_condition(){
   prec_acy = AcY;
   prec_acz = AcZ;
   
-  return (frontal | tilt | fall | detection);
+  return (frontal | tilt | fall | fire | detection);
 }
 
 void accident_detection(){
   tone(buz_pin, 500);
   //Continuo a leggere i dati finchè non sono validi
-  //while(!update_gps_data()){}
-  #ifdef DEBUG
-    print_all();
-  #else
-    send_data();
-    //Controllo che il bridge abbia ricevuto i dati
-    while(f_serial_state != 3){
-      if(Serial.available() > 0){
-        uint8_t c = Serial.read();
-        if(c == 'R' && serial_state == 0)  f_serial_state = 1;
-        if(c == 'E' && serial_state == 1)  f_serial_state = 2;
-        if(c == 'C' && serial_state == 2)  f_serial_state = 3;
-      }
-      else{
-        //aspetto 10 secondi e rinvio i dati
-        delay(10000);
-        send_data();
-      }
-      serial_state = f_serial_state;
+  while(!update_gps_data()){}
+  send_data();
+  //Controllo che il bridge abbia ricevuto i dati
+  while(f_serial_state != 3){
+    if(Serial.available() > 0){
+      uint8_t c = Serial.read();
+      if(c == 'R' && serial_state == 0)  f_serial_state = 1;
+      if(c == 'E' && serial_state == 1)  f_serial_state = 2;
+      if(c == 'C' && serial_state == 2)  f_serial_state = 3;
     }
-  #endif
+    else{
+      //aspetto 10 secondi e rinvio i dati
+      delay(10000);
+      send_data();
+    }
+    serial_state = f_serial_state;
+  }
   noTone(buz_pin);
   //INCIDENTE SEGNALATO E RICEVUTO CORRETTAMENTE ASPETTO RESET
   delay(60000); //aspetto un minuto 
-  reset_fun(); //Riavvio l'arduino
+  reset_fun(); //Resetto le variabili l'arduino
 }
 
 void reset_fun(){
   frontal = tilt = fire = fall = detection = false;
   serial_state = f_serial_state = 0;
+  first_fire_detect = exec = false;
 }
 
 void print_data(){
