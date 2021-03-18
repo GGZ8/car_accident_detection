@@ -1,27 +1,27 @@
 void update_imu_data(){
   // Inizio trasmissione con il dispositivo I2C
-  Wire.beginTransmission(MPU_addr);
+  Wire.beginTransmission(MPU_ADD);
   // Indirizzo di inizio della lettura
   Wire.write(0x3B);
   Wire.endTransmission(false);
   // Chiedo di leggere 8 indirizzi perchè sono 2 per ogni dato 
-  Wire.requestFrom(MPU_addr, 8, true);
+  Wire.requestFrom(MPU_ADD, 8, true);
 
   //Leggo
-  AcX = Wire.read() << 8 | Wire.read();
-  AcY = Wire.read() << 8 | Wire.read();
-  AcZ = Wire.read() << 8 | Wire.read();
-  Tmp = Wire.read() << 8 | Wire.read();
+  int16_t acx = (uint8_t)Wire.read() << 8 | (uint8_t)Wire.read();
+  int16_t acy = (uint8_t)Wire.read() << 8 | (uint8_t)Wire.read();
+  int16_t acz = (uint8_t)Wire.read() << 8 | (uint8_t)Wire.read();
+  int16_t tmp = (uint8_t)Wire.read() << 8 | (uint8_t)Wire.read();
 
   //Normalizing data
   float alpha = 0.5;
-  float X = AcX * alpha + (AcX * (1.0 - alpha));
-  float Y = AcY * alpha + (AcY * (1.0 - alpha)); 
-  float Z = AcZ * alpha + (AcZ * (1.0 - alpha));
-  AcX = (float)AcX / 16384.0;
-  AcY = (float)AcY / 16384.0;
-  AcZ = (float)AcZ / 16384.0;
-  Tmp = Tmp / 340.00 + 36.53;
+  float X = acx * alpha + (acx * (1.0 - alpha));
+  float Y = acy * alpha + (acy * (1.0 - alpha)); 
+  float Z = acz * alpha + (acz * (1.0 - alpha));
+  AcX = (float)acx / 16384.0;
+  AcY = (float)acy / 16384.0;
+  AcZ = (float)acz / 16384.0;
+  Tmp = tmp / 340.00 + 36.53;
 
   //Calcolo rotazioni su asse X e Y
   Roll = abs((atan2(-Y, Z) * 180.0) / M_PI);

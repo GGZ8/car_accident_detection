@@ -1,55 +1,25 @@
 //IMU e comunicazione seriale
-#include "Wire.h"           
+#include "Wire.h"
 #include "MPU6050.h"
 
 //Importazione dei moduli necessari
 //GPS ublox Neo-6m
 #include "TinyGPS++.h"
 
-//Funzioni per la calibrazione dell'IMU
-#include "calibration.h"
-//Funzioni per la lettura dei dati
-#include "read_data.h"
-//Funzioni per la stampa dei dati
-#include "print_information.h"
-//Funzioni per l'invio dei dati sulla seriale
-#include "send_data.h"
+#define DEBUG 1
+#define CALIBRATION 0
+#define DEBUG_SERIAL if(DEBUG)Serial
+
 
 MPU6050 accelgyro;
 TinyGPSPlus gps;
 
 void(* reboot) (void) = 0;  //Funzione che permette il riavvio
 
-/*//-----------------------------------------------------------------------------------
-
-#ifdef __arm__
-// should use uinstd.h to define sbrk but Due causes a conflict
-extern "C" char* sbrk(int incr);
-#else  // __ARM__
-extern char *__brkval;
-#endif  // __arm__
- 
-int freeMemory() {
-  char top;
-#ifdef __arm__
-  return &top - reinterpret_cast<char*>(sbrk(0));
-#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-  return &top - __brkval;
-#else  // __arm__
-  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-#endif  // __arm__
-}
-
-
-//-----------------------------------------------------------------------------------
-*/
-
-#define DEBUG 0
-#define DEBUG_SERIAL if(DEBUG)Serial
 
 //Pin utilizzati
 //Il modulo GPS usa la Serial1 per comunicare -> Rx1 = 19 e Tx1 = 18
-#define MPU_addr 0x68  //  I2C address of the GY-521
+#define MPU_ADD 0x68      //  I2C address of the GY-521
 #define flame_pin A15      //  Input pin per la lettura del flame sensor
 #define light_pin A14      //  Input pin per la lettura del light sensor
 #define trigger_pin 8      //  Output pin trigger ultrasonic
@@ -57,7 +27,7 @@ int freeMemory() {
 #define buz_pin 10         //  Output pin del buzzer
 
 //Variabile usata per controllare i dati a intervalli regolari
-unsigned long prev_millis, flame_time;
+unsigned long prev_millis;
 
 //Variabili ultrasonic
 long time_passed;   //  Tempo che impieghera' il suono a percorrere una certa distanza
@@ -70,17 +40,13 @@ float AcX, AcY, AcZ, Tmp;            //  Varaibli per la lettura dall'IMU
 float Roll, Pitch;                   //  Angoli di rotazione (Pitch -> asse Y Roll -> asse X)
 float prec_acx, prec_acy, prec_acz;  //  Variabili utilizzata per il controllo degli incidenti laterali
 
-int serial_state, f_serial_state;
+int ser_state, f_ser_state;
 bool frontal, tilt, fire, fall, detection;
-bool first_fire_detect, exec;
 
 //Struttura dati contenente le soglie di attivazione
 struct threshold_t {
   int distance;
   int tilt;
-  int temp;
-  int fire;
-  int light;
   float fall;
 }threshold;
 
@@ -90,11 +56,13 @@ void setup()  {
   Serial1.begin(9600);
   //Serial usata per la comunicazione con il cavo usb
   Serial.begin(9600);
-
+    
   //Inizializzazione dell'accelerometro
   Wire.begin();
 	accelgyro.initialize();
   setup_imu();
+  Wire.setWireTimeout(3000,true); 
+  Wire.clearWireTimeoutFlag();
 
   //Pin setup
   pinMode(flame_pin, INPUT);
@@ -107,83 +75,87 @@ void setup()  {
   digitalWrite(trigger_pin, LOW);
   noTone(buz_pin);
 
-  time_passed = distance = Pitch = Roll = serial_state = f_serial_state = 0;
+  time_passed = distance = Pitch = Roll = ser_state = f_ser_state = 0;
   prev_millis = millis();
   frontal = tilt = fire = fall = detection = false;
-  first_fire_detect = exec = false;
   
   //Soglie di attivazioni, devono essere modificate per funzionare in casi reali
-  threshold.temp = 60;
-  threshold.tilt = 45;
-  threshold.fall = 0.1;
+  threshold.tilt = 60;
+  threshold.fall = 0.01;
   threshold.distance = 2;
-  threshold.light = 985;
-  threshold.fire = 500;
 }
 
 
 void loop(){
-  if(millis() - prev_millis > 100){
+  if(millis() - prev_millis > 200){
     prev_millis = millis();
+    //Devono passare almeno 50ms perchè se no le onde interferiscono
+    update_ultrasonic_data();
+    //Aggiorno i dati dei sensori (imu e flame/light)
     update_imu_data();
     update_flame_light_data();
-    update_ultrasonic_data(); //Devono passare almeno 50ms perchè se no le onde interferiscono
+    send_flame_light_temp_data();
+    delay(70);
+    /*if(Tmp > 30 && AcZ < 0.2){
+      tone(buz_pin, 500);
+      print_imu_data();
+      delay(500);
+      noTone(buz_pin);
+      delay(5000);
+    }*/
+
     if(check_condition()){
-      #ifdef DEBUG
+      if(DEBUG){
+        //while(!update_gps_data()){}
         print_all();
-        print_data();
+        print_value();
         tone(buz_pin, 500);
         delay(500);
         noTone(buz_pin);
         reset_fun();
         delay(2000);
-      #else
-        accident_detection();
-      #endif
+      }
+      else{
+        accident_detected();
+      }
     }
   }
 }
 
+/*
+ * Funzione che viene eseguita per l'analisi dei valori dei sensori
+ * determina se è avvenuto un incidente e di che tipo è l'incidente 
+ */
 bool check_condition(){
-  //Incidente frontale
+  //Incidente frontale o tamponamento
   if(distance <= threshold.distance)  frontal = true;
 
   //Caduta libera
   if(AcZ + AcX + AcY > -threshold.fall && AcZ + AcX + AcY < threshold.fall) fall = true;
 
   //Rilevazione di ribaltamento
-  if(Pitch >= threshold.tilt || AcZ < 0) tilt = true;
+  if(Pitch >= threshold.tilt || AcZ < threshold.fall*30) tilt = true;
 
   //Incidente laterale
   if(AcX - prec_acx > 1.2) detection = true;
 
-  //Tamponamento
+  //Tamponamento subito
   if(AcY - prec_acy > 1.2) detection = true;
 
-  //Fuoco
-  //Se non viene rilevata luce allora c'è sicuramente del fuoco
-  if(light_val < threshold.light && flame_val > threshold.fire){
-    DEBUG_SERIAL.println("NO LUCE, MA FUOCO");
+  //Controllo se è stato rilevato un fuoco
+  while(Serial.available() > 0){
+    uint8_t c = Serial.read();
+    if(c == 'F' && ser_state == 0)  f_ser_state = 1;
+    if(c == 'I' && ser_state == 1)  f_ser_state = 2;
+    if(c == 'R' && ser_state == 2)  f_ser_state = 3;
+    if(c == 'E' && ser_state == 3)  f_ser_state = 4;
+    ser_state = f_ser_state ;
+  }
+  if(ser_state == 4) {
     fire = true;
+    f_ser_state = ser_state = 0;
   }
-  
-  //Se c'è luce, oltre a controllare il valore del flame sensor considero la temperatura
-  if(light_val >= threshold.light && flame_val > threshold.fire){
-    DEBUG_SERIAL.println("LUCE, CHECK FUOCO");
-    if(Tmp >= threshold.temp || (first_fire_detect && (millis() - flame_time > 30000))){
-      fire = true;
-    }
-    else{
-      DEBUG_SERIAL.println("POSSIBILE FUOCO");
-      if(!exec) {
-        flame_time = millis();
-        exec = true;
-      }
-      first_fire_detect = true;
-    }
-  }
-
-  
+ 
   prec_acx = AcX;
   prec_acy = AcY;
   prec_acz = AcZ;
@@ -191,25 +163,34 @@ bool check_condition(){
   return (frontal | tilt | fall | fire | detection);
 }
 
-void accident_detection(){
+/*
+ * Funzione che segnala l'incidente al bridge:
+ * - Leggo i dati dal modulo GPS finchè non ottengo dati validi
+ * - Invio tutti i dati (posizione, dati della vettura)
+ * - Aspetto che il bridge confermi la ricezione dei dati, altrimenti continuo a inviarli ad intervalli di 10 secondi
+ * - Resetto le variabili 
+ */
+void accident_detected(){
   tone(buz_pin, 500);
-  //Continuo a leggere i dati finchè non sono validi
+  //Leggo i dati finchè non sono validi
   while(!update_gps_data()){}
   send_data();
+  delay(70); //Aspetto 70ms per dare il tempo al bridge di rispondere
+  
   //Controllo che il bridge abbia ricevuto i dati
-  while(f_serial_state != 3){
+  while(ser_state != 3){
     if(Serial.available() > 0){
       uint8_t c = Serial.read();
-      if(c == 'R' && serial_state == 0)  f_serial_state = 1;
-      if(c == 'E' && serial_state == 1)  f_serial_state = 2;
-      if(c == 'C' && serial_state == 2)  f_serial_state = 3;
+      if(c == 'A' && ser_state == 0)  f_ser_state = 1;
+      if(c == 'C' && ser_state == 1)  f_ser_state = 2;
+      if(c == 'K' && ser_state == 2)  f_ser_state = 3;
     }
     else{
       //aspetto 10 secondi e rinvio i dati
       delay(10000);
       send_data();
     }
-    serial_state = f_serial_state;
+    ser_state = f_ser_state;
   }
   noTone(buz_pin);
   //INCIDENTE SEGNALATO E RICEVUTO CORRETTAMENTE ASPETTO RESET
@@ -217,13 +198,16 @@ void accident_detection(){
   reset_fun(); //Resetto le variabili l'arduino
 }
 
+/*
+ * Funzione di reset delle variabili dopo la segnalazione di un incidente
+ */
 void reset_fun(){
   frontal = tilt = fire = fall = detection = false;
-  serial_state = f_serial_state = 0;
-  first_fire_detect = exec = false;
+  ser_state = f_ser_state = 0;
 }
 
-void print_data(){
+
+void print_value(){
   DEBUG_SERIAL.print("Frontal = ");
   DEBUG_SERIAL.print(frontal);
   DEBUG_SERIAL.print(" | Fire = ");

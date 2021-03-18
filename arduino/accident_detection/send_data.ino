@@ -55,23 +55,15 @@ void send_data(){
 
 
 
-void send_imu_data(){
-  byte * Az = (byte *) &AcZ;
-  byte * Ay = (byte *) &AcY;
-  byte * Ax = (byte *) &AcX;
-  Serial.write(0x7F);
-  Serial.write(0x0C);
-  Serial.write(Ax[0]);
-  Serial.write(Ax[1]);
-  Serial.write(Ax[2]);
-  Serial.write(Ax[3]);
-  Serial.write(Ay[0]);
-  Serial.write(Ay[1]);
-  Serial.write(Ay[2]);
-  Serial.write(Ay[3]);
-  Serial.write(Az[0]);
-  Serial.write(Az[1]);
-  Serial.write(Az[2]);
-  Serial.write(Az[3]);
-  Serial.write(0x7E);
+void send_flame_light_temp_data(){
+  uint8_t flame = map(flame_val, 0, 1024, 0, 253);
+  uint8_t light = map(light_val, 0, 1024, 0, 253);
+  uint8_t temp = int(Tmp);
+  uint8_t data[] = {0xFE, 0x04, flame, light, temp, 0x00, 0xFF};
+  if(temp < 0){
+    data[5] = 0x01;
+  }
+  for (uint8_t i = 0; i < sizeof(data); i++) {
+    Serial.write(data[i]);
+  }
 }

@@ -5,45 +5,36 @@ void print_gps_data(){
   DEBUG_SERIAL.println(gps.location.lng(), 6);
   
   DEBUG_SERIAL.print(gps.date.day());
-  DEBUG_SERIAL.print(F("/"));
+  DEBUG_SERIAL.print("/");
   DEBUG_SERIAL.print(gps.date.month());
-  DEBUG_SERIAL.print(F("/"));
+  DEBUG_SERIAL.print("/");
   DEBUG_SERIAL.println(gps.date.year());
   
   DEBUG_SERIAL.print(gps.time.hour());
-  DEBUG_SERIAL.print(F(":"));
+  DEBUG_SERIAL.print(":");
   DEBUG_SERIAL.print(gps.time.minute());
-  DEBUG_SERIAL.print(F(":"));
+  DEBUG_SERIAL.print(":");
   DEBUG_SERIAL.println(gps.time.second());
 }
 
 void print_imu_data(){
-  DEBUG_SERIAL.print("AcX = ");
-  DEBUG_SERIAL.print(AcX);
-  DEBUG_SERIAL.print(" | AcY = ");
-  DEBUG_SERIAL.print(AcY);
-  DEBUG_SERIAL.print(" | AcZ = ");
-  DEBUG_SERIAL.print(AcZ);
-  DEBUG_SERIAL.print(" | Tmp = ");
-  DEBUG_SERIAL.print(Tmp);
+  DEBUG_SERIAL.print("AcX = " + String(AcX));
+  DEBUG_SERIAL.print(" | AcY = " + String(AcY));
+  DEBUG_SERIAL.print(" | AcZ = " + String(AcZ));
+  DEBUG_SERIAL.print(" | Tmp = " + String(Tmp));
   //DEBUG_SERIAL.print(" | Roll = ");
   //DEBUG_SERIAL.print(Roll);
-  DEBUG_SERIAL.print(" | Pitch = ");
-  DEBUG_SERIAL.println(Pitch);
+  DEBUG_SERIAL.print(" | Pitch = " + String(Pitch));
 }
 
 
 void print_flame_light_data(){
-  DEBUG_SERIAL.print("Flame = "); 
-  DEBUG_SERIAL.print(flame_val); 
-  DEBUG_SERIAL.print(" | ");
-  DEBUG_SERIAL.print("Light = ");
-  DEBUG_SERIAL.println(light_val);
+  DEBUG_SERIAL.print("Flame = " + String(flame_val)); 
+  DEBUG_SERIAL.print(" | Light = " + String(light_val));
 }
 
 void print_ultrasonic_data(){
-  DEBUG_SERIAL.print("Distanza = ");
-  DEBUG_SERIAL.println(distance);
+  DEBUG_SERIAL.print("Distance = " + String(distance));
 }
 
 void print_all(){

@@ -98,12 +98,12 @@ void calibration()
 
 
 void mpu_init(){
-	DEBUG_SERIAL.println("\nMPU6050 Calibration");
+	Serial.println("\nMPU6050 Calibration");
 	delay(2000);
-	DEBUG_SERIAL.println("\nYour MPU6050 should be placed in horizontal position.\n");
+	Serial.println("\nYour MPU6050 should be placed in horizontal position.\n");
 	delay(3000);
 	// verify connection
-	DEBUG_SERIAL.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+	Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 	delay(1000);
 	
 	// reset offsets
@@ -116,14 +116,14 @@ void mpu_init(){
 
 	while (true){
 		if (state == 0){
-			DEBUG_SERIAL.println("\nReading sensors for first time...");
+			Serial.println("\nReading sensors for first time...");
 			meansensors();
 			state++;
 			delay(1000);
 		}
 
 		if (state == 1){
-			DEBUG_SERIAL.print("\nCalculating offsets... ");
+			Serial.print("\nCalculating offsets... ");
 			calibration();
 			state++;
 			delay(1000);
@@ -131,59 +131,50 @@ void mpu_init(){
 
 		if (state == 2){
 			meansensors();
-			DEBUG_SERIAL.println("\nFINISHED!");
-      #ifdef DEBUG
-  			Serial.print("\nSensor readings with offsets:\t");
-  			Serial.print(mean_ax);
-  			Serial.print("\t");
-  			Serial.print(mean_ay);
-  			Serial.print("\t");
-  			Serial.print(mean_az);
-  			Serial.print("\t");
-  			Serial.print(mean_gx);
-  			Serial.print("\t");
-  			Serial.print(mean_gy);
-  			Serial.print("\t");
-  			Serial.println(mean_gz);
-        Serial.print("Your offsets:\t");
-        Serial.print(ax_offset); 
-        Serial.print("\t");
-        Serial.print(ay_offset); 
-        Serial.print("\t");
-        Serial.print(az_offset); 
-        Serial.print("\t");
-        Serial.print(gx_offset); 
-        Serial.print("\t");
-        Serial.print(gy_offset); 
-        Serial.print("\t");
-        Serial.println(gz_offset); 
-      #endif
-      delay(1000);
-      //Imposto i valori calcolati
-			accelgyro.setXAccelOffset(ax_offset);
-			accelgyro.setYAccelOffset(ay_offset);
-			accelgyro.setZAccelOffset(az_offset);
-			accelgyro.setXGyroOffset(gx_offset);
-			accelgyro.setYGyroOffset(gy_offset);
-			accelgyro.setZGyroOffset(gz_offset);
-      break;
+			Serial.println("\nFINISHED!");
+			Serial.print("\nSensor readings with offsets:\t");
+			Serial.print(mean_ax);
+			Serial.print("\t");
+			Serial.print(mean_ay);
+			Serial.print("\t");
+			Serial.print(mean_az);
+			Serial.print("\t");
+			Serial.print(mean_gx);
+			Serial.print("\t");
+			Serial.print(mean_gy);
+			Serial.print("\t");
+			Serial.println(mean_gz);
+      Serial.print("Your offsets:\t");
+      Serial.print(ax_offset); 
+      Serial.print("\t");
+      Serial.print(ay_offset); 
+      Serial.print("\t");
+      Serial.print(az_offset); 
+      Serial.print("\t");
+      Serial.print(gx_offset); 
+      Serial.print("\t");
+      Serial.print(gy_offset); 
+      Serial.print("\t");
+      Serial.println(gz_offset); 
+      Serial.print("\nSalva i dati e impostali nel file calibration");
+      while(true){};
 		}
 	}
 }
 
 void setup_imu(){
-  Wire.beginTransmission(MPU_addr);
-  Wire.write(0x6B);  // PWR_MGMT_1 register
-  Wire.write(0);     // set to zero (wakes up the MPU-6050)
+  Wire.beginTransmission(MPU_ADD);
+  Wire.write(0x6B);
+  Wire.write(0);
   Wire.endTransmission(true);
- 
+  
   if(!accelgyro.testConnection()){
     DEBUG_SERIAL.println("ERROR CONNETCING TO IMU: CHECK WIRING");
-    DEBUG_SERIAL.println("TRYING REBOOTING");
+    DEBUG_SERIAL.println("TRYING REBOOTING..");
     reboot();
   }
   else{
-    #ifdef DEBUG
+    if(!CALIBRATION){
       //Default setting dopo diverse calibrazioni
       accelgyro.setXAccelOffset(2643);
       accelgyro.setYAccelOffset(752);
@@ -191,9 +182,10 @@ void setup_imu(){
       accelgyro.setXGyroOffset(29);
       accelgyro.setYGyroOffset(28);
       accelgyro.setZGyroOffset(35);
-    #else
+    }
+    else{
       //Funzione di calibrazione dell'IMU
       mpu_init();
-    #endif
+    }
   }
 }
