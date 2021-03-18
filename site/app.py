@@ -25,7 +25,7 @@ app.config.from_object(custom_config)
 bootstrap = Bootstrap(app)
 db.init_app(app)
 
-if not os.path.isfile(f"{Setting.SQLALCHEMY_DATABASE_URI}"):
+if not os.path.isfile(f"{Setting.DB_PATH}"):
     db.create_all(app=app)
 
 

@@ -11,7 +11,7 @@ db = SQLAlchemy()
 @contextmanager
 def get_session():
     # Create an engine which the Session will use for connections.
-    engine = create_engine(f"sqlite:///{Setting.SQLALCHEMY_DATABASE_URI}")
+    engine = create_engine(f"{Setting.SQLALCHEMY_DATABASE_URI}")
     connection = engine.connect()
     # Create a Session
     session = scoped_session(sessionmaker(bind=engine, autocommit=False, autoflush=True))
@@ -29,7 +29,7 @@ class TelegramUser(db.Model):
 class Accident(db.Model):
     __tablename__ = 'accident'
     id = Column(Integer, primary_key=True)
-    car_id = Column(String, ForeignKey('car.license_plate'))
+    car_id = Column(String(length=7), ForeignKey('car.license_plate'))
     car = relationship('Car')
     date_time = Column(DateTime, nullable=False)
     temperature = Column(Integer, nullable=False)
@@ -64,4 +64,4 @@ class Car(db.Model):
     __tablename__ = 'car'
     license_plate = Column(String(length=7), primary_key=True)
     user_id = Column(Integer, ForeignKey('telegram_user.user_id'))
-    chat_id = Column(Integer, nullable=False)
+    chat_id = Column(Integer)

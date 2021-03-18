@@ -27,7 +27,8 @@ class Setting:
 
     # Database
 
-    SQLALCHEMY_DATABASE_URI = f"{current_dir}/test.sqlite"  # = 'mysql://username:password@localhost/db_name'
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{current_dir}/test.sqlite"  # = 'mysql://username:password@localhost/db_name'
+    DB_PATH = f"{current_dir}/test.sqlite"
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

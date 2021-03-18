@@ -198,6 +198,8 @@ window.setInterval(function(){
         for(let i = 0; i < data.tot; i++){
           updateMarkers(data.accident[i]);
         }
+        let audio = new Audio('./static/bip_sound.mp3');
+        audio.play();
       },
       300: function (data) {
         error(data);

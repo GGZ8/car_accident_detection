@@ -7,6 +7,7 @@ from telegram_bot.handlers.accidentHandler import accident_message
 from dateutil import tz
 from aiFire import detect_fire
 
+
 class Bridge:
 
     def __init__(self):
@@ -94,15 +95,16 @@ class Bridge:
                                      datetime.strptime(str(hour), '%H%M%S%f').time())
         date_time = date_time.replace(tzinfo=self.from_zone)
         date_time = date_time.astimezone(self.to_zone)
-        print(f'lat={lat}, lng={lng}, frontal={frontal}, tilt={tilt}, fire={fire}, fall={fall}, tmp={tmp}, targa={license_plate}, data={date_time}')
-        '''
+        print(
+            f'lat={lat}, lng={lng}, frontal={frontal}, tilt={tilt}, fire={fire}, fall={fall}, tmp={tmp}, targa={license_plate}, data={date_time}')
+
         with get_session() as session:
             accident = Accident(car_id=license_plate, date_time=date_time, temperature=tmp, fire=fire, frontal=frontal,
                                 tilt=tilt, fall=fall, lat=lat, lng=lng, reported=False)
             session.add(accident)
             session.commit()
-            accident_message(accident)
-        '''
+            if accident.car.chat_id is not None:
+                accident_message(accident)
 
 
 if __name__ == "__main__":
