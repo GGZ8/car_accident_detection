@@ -27,7 +27,7 @@ void(* reboot) (void) = 0;  //Funzione che permette il riavvio
 #define buz_pin 10         //  Output pin del buzzer
 
 //Variabile usata per controllare i dati a intervalli regolari
-unsigned long prev_millis;
+unsigned long prev_millis, fire_millis;
 
 //Variabili ultrasonic
 long time_passed;   //  Tempo che impieghera' il suono a percorrere una certa distanza
@@ -76,26 +76,40 @@ void setup()  {
   noTone(buz_pin);
 
   time_passed = distance = Pitch = Roll = ser_state = f_ser_state = 0;
-  prev_millis = millis();
+  prev_millis = fire_millis = millis();
   frontal = tilt = fire = fall = detection = false;
   
   //Soglie di attivazioni, devono essere modificate per funzionare in casi reali
   threshold.tilt = 60;
-  threshold.fall = 0.01;
+  threshold.fall = 0.02;
   threshold.distance = 2;
 }
 
-
+/*
+ * In questa funzione avviene un campionamento dei dati ogni 200ms (5Hz)
+ * vengono letti i dati del sensore ultrasonic e dell'imu, la lettura dei dati 
+ * deve avvenire con un periodo superiore ai 50ms altrimenti ci sarebbero interferenze 
+ * nei segnali del sensore di prossimità.
+ * Per quanto riguarda i dati relativi all'intensità luminosa e la presenza di fiamme, 
+ * questi vengono campionati a una frequenza di 0.5Hz perchè i cambiamenti sono più lenti.
+ * Vengono poi inviati tramite seriale al bridge che li analizza e verifica se è presente
+ * un'incendio.
+ * Viene poi chiamata una funzione di controllo che verifica i parametri per controllare
+ * la presenza di incidenti.
+ */
 void loop(){
-  if(millis() - prev_millis > 200){
+  if(millis() - prev_millis > 100){
     prev_millis = millis();
-    //Devono passare almeno 50ms perchè se no le onde interferiscono
     update_ultrasonic_data();
-    //Aggiorno i dati dei sensori (imu e flame/light)
     update_imu_data();
-    update_flame_light_data();
-    send_flame_light_temp_data();
-    delay(70);
+    if(millis() - fire_millis > 2000){
+      fire_millis = millis();
+      update_flame_light_data();
+      send_flame_light_temp_data();
+      delay(70);
+    }
+    
+    //Possibili problemi di lettura dati ogni tanto
     /*if(Tmp > 30 && AcZ < 0.2){
       tone(buz_pin, 500);
       print_imu_data();
@@ -104,11 +118,10 @@ void loop(){
       delay(5000);
     }*/
 
-    if(check_condition()){
+    if(check_parameters()){
       if(DEBUG){
-        //while(!update_gps_data()){}
+        while(!update_gps_data()){}
         print_all();
-        print_value();
         tone(buz_pin, 500);
         delay(500);
         noTone(buz_pin);
@@ -123,18 +136,20 @@ void loop(){
 }
 
 /*
- * Funzione che viene eseguita per l'analisi dei valori dei sensori
- * determina se è avvenuto un incidente e di che tipo è l'incidente 
+ * Funzione che viene eseguita per l'analisi dei valori dei sensori,
+ * determina se è avvenuto un incidente e di che tipo è l'incidente.
+ * Se presenti, legge i dati sulla seriale e se riceve la stringa 'FIRE' 
+ * viene segnalato
  */
-bool check_condition(){
+bool check_parameters(){
   //Incidente frontale o tamponamento
   if(distance <= threshold.distance)  frontal = true;
 
   //Caduta libera
-  if(AcZ + AcX + AcY > -threshold.fall && AcZ + AcX + AcY < threshold.fall) fall = true;
+  if(AcZ + AcX + AcY < threshold.fall) fall = true;
 
   //Rilevazione di ribaltamento
-  if(Pitch >= threshold.tilt || AcZ < threshold.fall*30) tilt = true;
+  if(Roll >= threshold.tilt || AcZ < -threshold.fall*30) tilt = true;
 
   //Incidente laterale
   if(AcX - prec_acx > 1.2) detection = true;
@@ -185,8 +200,7 @@ void accident_detected(){
       if(c == 'C' && ser_state == 1)  f_ser_state = 2;
       if(c == 'K' && ser_state == 2)  f_ser_state = 3;
     }
-    else{
-      //aspetto 10 secondi e rinvio i dati
+    else{ //Se il bridge non mi conferma la ricezione aspetto 10 secondi e rinvio i dati
       delay(10000);
       send_data();
     }
@@ -195,7 +209,7 @@ void accident_detected(){
   noTone(buz_pin);
   //INCIDENTE SEGNALATO E RICEVUTO CORRETTAMENTE ASPETTO RESET
   delay(60000); //aspetto un minuto 
-  reset_fun(); //Resetto le variabili l'arduino
+  reset_fun(); //Resetto le variabili
 }
 
 /*
@@ -204,19 +218,4 @@ void accident_detected(){
 void reset_fun(){
   frontal = tilt = fire = fall = detection = false;
   ser_state = f_ser_state = 0;
-}
-
-
-void print_value(){
-  DEBUG_SERIAL.print("Frontal = ");
-  DEBUG_SERIAL.print(frontal);
-  DEBUG_SERIAL.print(" | Fire = ");
-  DEBUG_SERIAL.print(fire);
-  DEBUG_SERIAL.print(" | Tilt = ");
-  DEBUG_SERIAL.print(tilt);
-  DEBUG_SERIAL.print(" | Fall = ");
-  DEBUG_SERIAL.print(fall);
-  DEBUG_SERIAL.print(" | Detection = ");
-  DEBUG_SERIAL.print(detection);
-  DEBUG_SERIAL.println();
 }

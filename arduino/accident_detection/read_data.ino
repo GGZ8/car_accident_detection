@@ -24,14 +24,12 @@ void update_imu_data(){
   Tmp = tmp / 340.00 + 36.53;
 
   //Calcolo rotazioni su asse X e Y
-  Roll = abs((atan2(-Y, Z) * 180.0) / M_PI);
-  Pitch = abs((atan2(X, sqrt(Y*Y + Z*Z)) * 180.0) / M_PI);
+  Roll = abs((atan2(X, sqrt(Y*Y + Z*Z)) * 180.0) / M_PI);
+  Pitch = abs((atan2(Y, sqrt(X*X + Z*Z)) * 180.0) / M_PI);
 }
 
 void update_flame_light_data(){
   flame_val = map(analogRead(flame_pin), 0, 1024, 1024, 0);
-  //light_val = map(analogRead(light_pin), 0, 1024, 0, 10);
-  //flame_val = analogRead(flame_pin);
   light_val = analogRead(light_pin);
 }
 

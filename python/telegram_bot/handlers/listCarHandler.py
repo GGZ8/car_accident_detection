@@ -8,11 +8,11 @@ logger = logging.getLogger()
 
 
 def get_car(update: Update, context: CallbackContext):
-    user_id = update.message.from_user.id
-    logging.info(user_id)
+    chat_id = update.effective_chat.id
+    logging.info(f'Lista auto per : {chat_id}')
     with get_session() as session:
         try:
-            cars = session.query(Car).filter_by(user_id=user_id).all()
+            cars = session.query(Car).filter_by(chat_id=chat_id).all()
             if not len(cars):
                 msg = "Non hai memorizzato nessuna auto"
             else:

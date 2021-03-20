@@ -4,9 +4,9 @@ import os
 from flask_bootstrap import Bootstrap
 from flask import Flask, render_template, jsonify
 
-from settings import Setting
-from secret import google_api
-from models import db, Accident, get_session
+from ..settings import Setting
+from ..secret import google_api
+from ..models import db, Accident, get_session
 
 os.makedirs(os.path.dirname(Setting.FLASK_LOG_PATH), exist_ok=True)
 logging.basicConfig(
@@ -57,13 +57,13 @@ def update():
             accidents = session.query(Accident).filter_by(reported=False).all()
             if len(accidents):
                 data['tot'] = len(accidents)
-                data['accident'] = [a.serialize for a in accidents]
+                data['accidents'] = [a.serialize for a in accidents]
                 for a in accidents:
                     a.reported = True
                 session.commit()
                 return jsonify(data), 200
             else:
-                return {}, 205
+                return {}, 204
         except Exception as e:
             logging.info(data)
             data['message'] = e

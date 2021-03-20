@@ -2,8 +2,8 @@ import serial
 import serial.tools.list_ports
 import struct
 from datetime import datetime
-from models import get_session, Accident
-from telegram_bot.handlers.accidentHandler import accident_message
+from ..models import get_session, Accident
+from ..telegram_bot.handlers.accidentHandler import accident_message
 from dateutil import tz
 from aiFire import detect_fire
 

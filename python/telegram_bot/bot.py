@@ -1,16 +1,12 @@
 import logging
-import os
 
-from handlers import addCarHandler, helpHandler, listCarHandler, deleteCarHandler
+from handlers import addCarHandler, helpHandler, deleteCarHandler
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
-from secret import telegram_key
-from settings import Setting
-from models import db
-from telegram_bot.handlers.deleteCarHandler import select_car
-from telegram_bot.handlers.listCarHandler import get_car
+from ..secret import telegram_key
+from ..telegram_bot.handlers.listCarHandler import get_car
 
 logging.basicConfig(
-    filename=f"{Setting.TELEGRAM_LOG_PATH}",
+    #filename=f"{Setting.TELEGRAM_LOG_PATH}",
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
@@ -47,9 +43,6 @@ def start_bot():
 
 
 if __name__ == '__main__':
-    # Controllo che il DB esista già, altrimenti lo creo
-    if not os.path.isfile(f"{Setting.DB_PATH}"):
-        db.create_all()
 
     # start bot
     updater = start_bot()

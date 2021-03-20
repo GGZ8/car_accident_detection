@@ -156,7 +156,7 @@ void mpu_init(){
       Serial.print(gy_offset); 
       Serial.print("\t");
       Serial.println(gz_offset); 
-      Serial.print("\nSalva i dati e impostali nel file calibration");
+      Serial.print("\nSalva i dati e impostali nel file calibration, nella funzione setup_imu() ");
       while(true){};
 		}
 	}

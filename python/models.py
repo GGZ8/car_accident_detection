@@ -20,10 +20,10 @@ def get_session():
     connection.close()
 
 
-class TelegramUser(db.Model):
-    __tablename__ = 'telegram_user'
-    user_id = Column(Integer, primary_key=True)
-    cars = relationship('Car')
+class Car(db.Model):
+    __tablename__ = 'car'
+    license_plate = Column(String(length=7), primary_key=True)
+    chat_id = Column(Integer)
 
 
 class Accident(db.Model):
@@ -56,12 +56,4 @@ class Accident(db.Model):
             'fall': self.fall,
             'lat': self.lat,
             'lng': self.lng,
-            'reported': self.reported,
         }
-
-
-class Car(db.Model):
-    __tablename__ = 'car'
-    license_plate = Column(String(length=7), primary_key=True)
-    user_id = Column(Integer, ForeignKey('telegram_user.user_id'))
-    chat_id = Column(Integer)

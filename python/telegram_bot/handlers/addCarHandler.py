@@ -10,7 +10,7 @@ from telegram.ext import (
     CallbackContext,
 )
 from .helpHandler import reply_keyboard as default_reply_keyboard
-from models import get_session, Car, TelegramUser
+from models import get_session, Car
 
 TOTAL = 1
 pattern = '\D\D\d\d\d\D\D'
@@ -31,28 +31,18 @@ def read_license_plate(update: Update, context: CallbackContext) -> int:
     # controlli
     if len(text) > 7 or not re.match(pattern, text):
         logging.info(f"Targa {text} errata")
-        msg = "Formato targa errato (Es. AA111AA).\nReinserisci (o /cancel per terminare):"
+        msg = "Formato targa errato \(Es\. AA111AA\)\.\nReinserisci \(o /cancel per terminare\):"
         context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.MARKDOWN_V2)
         return TOTAL
     else:
-        user_id = update.message.from_user.id
-        chat_id = update.message.chat_id
+        chat_id = update.effective_chat.id
         with get_session() as session:
             try:
                 car = session.query(Car).get(text)
-                user = session.query(TelegramUser).get(user_id)
                 if car is None:
                     car = Car(license_plate=text, chat_id=chat_id)
                     session.add(car)
                     session.commit()
-                    if user is None:
-                        tg = TelegramUser(user_id=user_id)
-                        tg.cars.append(car)
-                        session.add(tg)
-                        session.commit()
-                    else:
-                        user.cars.append(car)
-                        session.commit()
                     msg = f"🚗 Auto con targa *{text}* aggiunta correttamente"
                     val = ConversationHandler.END
                 else:
@@ -63,7 +53,7 @@ def read_license_plate(update: Update, context: CallbackContext) -> int:
                 msg = f"Errore durante inserimento"
                 val = TOTAL
 
-        context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode=ParseMode.MARKDOWN_V2)
+        context.bot.send_message(chat_id=chat_id, text=msg, parse_mode=ParseMode.MARKDOWN_V2)
         return val
 
 

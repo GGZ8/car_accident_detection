@@ -106,17 +106,6 @@ function updateCard(marker){
 
 
 function initMap() {
-  const areaCoords = [
-    { lat: 44.715, lng: 10.882},
-    { lat: 44.650, lng: 10.803},
-    { lat: 44.607, lng: 10.811},
-    { lat: 44.560, lng: 10.863},
-    { lat: 44.530, lng: 10.968},
-    { lat: 44.565, lng: 11.017},
-    { lat: 44.636, lng: 11.041},
-    { lat: 44.693, lng: 11.016},
-    { lat: 44.712, lng: 10.926}
-  ];
   map = new google.maps.Map(document.getElementById("map"), {
     zoom: 12,
     center: { lat: 44.617, lng: 10.943},
@@ -124,16 +113,7 @@ function initMap() {
     fullscreenControl: false,
      streetViewControl: false,
   });
-  const workArea = new google.maps.Polygon({
-    paths: areaCoords,
-    strokeColor: "#0066ff",
-    strokeOpacity: 0.1,
-    strokeWeight: 2,
-    fillColor: "#3cade0",
-    fillOpacity: 0.01,
-  });
-  workArea.setMap(map);
-  workArea.addListener("click", () => {
+  map.addListener("click", () => {
     close();
   });
 }
@@ -171,6 +151,7 @@ function updateMarkers(data){
     map.setCenter(marker.getPosition());
   });
   marker.setMap(map);
+  map.setCenter(car_pos);
 }
 
 function geocodeLatLng(geocoder, car_pos, info_window) {
@@ -196,7 +177,7 @@ window.setInterval(function(){
     statusCode : {
       200: function (data) {
         for(let i = 0; i < data.tot; i++){
-          updateMarkers(data.accident[i]);
+          updateMarkers(data.accidents[i]);
         }
         let audio = new Audio('./static/bip_sound.mp3');
         audio.play();

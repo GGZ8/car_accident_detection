@@ -1,3 +1,4 @@
+from secret import user, password, ip
 import os
 
 
@@ -29,6 +30,7 @@ class Setting:
 
     SQLALCHEMY_DATABASE_URI = f"sqlite:///{current_dir}/test.sqlite"  # = 'mysql://username:password@localhost/db_name'
     DB_PATH = f"{current_dir}/test.sqlite"
+    #SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{user}:{password}@{ip}/db'
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
