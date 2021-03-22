@@ -4,7 +4,7 @@ import re
 from telegram import Update, ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, CallbackQueryHandler, ConversationHandler, MessageHandler, Filters, \
     CommandHandler
-from models import get_session, Car
+from common.models import get_session, Car
 from .helpHandler import reply_keyboard as default_reply_keyboard
 
 pattern = '\D\D\d\d\d\D\D'

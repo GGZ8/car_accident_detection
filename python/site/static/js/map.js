@@ -126,8 +126,9 @@ function updateMarkers(data){
     close();
   });
   let car_pos = {'lat': data.lat, 'lng': data.lng}
-  var dev = '{{ development }}';
-  if(!dev){
+  var dev = document.getElementById('dev').textContent;
+  console.log(dev);
+  if(dev === 'False'){
     geocodeLatLng(geocoder, car_pos, info_window);
   }
 

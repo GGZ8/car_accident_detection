@@ -2,7 +2,7 @@ import logging
 
 from telegram import Update, ParseMode
 from telegram.ext import CallbackContext
-from models import get_session, Car
+from common.models import get_session, Car
 
 logger = logging.getLogger()
 

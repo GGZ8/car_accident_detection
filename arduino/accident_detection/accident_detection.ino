@@ -6,7 +6,7 @@
 //GPS ublox Neo-6m
 #include "TinyGPS++.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define CALIBRATION 0
 #define DEBUG_SERIAL if(DEBUG)Serial
 
@@ -80,8 +80,8 @@ void setup()  {
   frontal = tilt = fire = fall = detection = false;
   
   //Soglie di attivazioni, devono essere modificate per funzionare in casi reali
-  threshold.tilt = 60;
-  threshold.fall = 0.02;
+  threshold.tilt = 40;
+  threshold.fall = 0.01;
   threshold.distance = 2;
 }
 
@@ -102,6 +102,7 @@ void loop(){
     prev_millis = millis();
     update_ultrasonic_data();
     update_imu_data();
+    //print_imu_data();
     if(millis() - fire_millis > 2000){
       fire_millis = millis();
       update_flame_light_data();
@@ -126,7 +127,7 @@ void loop(){
         delay(500);
         noTone(buz_pin);
         reset_fun();
-        delay(2000);
+        delay(5000);
       }
       else{
         accident_detected();
@@ -208,7 +209,7 @@ void accident_detected(){
   }
   noTone(buz_pin);
   //INCIDENTE SEGNALATO E RICEVUTO CORRETTAMENTE ASPETTO RESET
-  delay(60000); //aspetto un minuto 
+  delay(60000*10); //aspetto 10 minuti
   reset_fun(); //Resetto le variabili
 }
 

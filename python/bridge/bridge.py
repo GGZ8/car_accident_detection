@@ -2,8 +2,8 @@ import serial
 import serial.tools.list_ports
 import struct
 from datetime import datetime
-from ..models import get_session, Accident
-from ..telegram_bot.handlers.accidentHandler import accident_message
+#from common.models import get_session, Accident
+#from telegram_bot.handlers.accidentHandler import accident_message
 from dateutil import tz
 from aiFire import detect_fire
 
@@ -97,7 +97,7 @@ class Bridge:
         date_time = date_time.astimezone(self.to_zone)
         print(
             f'lat={lat}, lng={lng}, frontal={frontal}, tilt={tilt}, fire={fire}, fall={fall}, tmp={tmp}, targa={license_plate}, data={date_time}')
-
+        '''
         with get_session() as session:
             accident = Accident(car_id=license_plate, date_time=date_time, temperature=tmp, fire=fire, frontal=frontal,
                                 tilt=tilt, fall=fall, lat=lat, lng=lng, reported=False)
@@ -105,7 +105,7 @@ class Bridge:
             session.commit()
             if accident.car.chat_id is not None:
                 accident_message(accident)
-
+		'''
 
 if __name__ == "__main__":
     my_serial = Bridge()

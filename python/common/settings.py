@@ -1,9 +1,10 @@
-from secret import user, password, ip
+from .secret import user, password, ip
 import os
 
 
 class Setting:
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+    current_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    print(current_dir)
     SECRET_KEY = b'WAJX)pwa4sVZn3mxFje(Hhy_GdJXveDG@vj8JPQrkmqfCzbEs,w&B5gZqyWT'
     USE_PROXYFIX = False
 
@@ -18,7 +19,7 @@ class Setting:
     FLASK_ENV = "development"
     #FLASK_ENV = "production"
 
-    DEBUG = True
+    DEBUG = False
     TESTING = True
 
     SESSION_TYPE = 'sqlalchemy' #'redis'

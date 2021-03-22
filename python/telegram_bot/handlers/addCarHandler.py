@@ -10,7 +10,7 @@ from telegram.ext import (
     CallbackContext,
 )
 from .helpHandler import reply_keyboard as default_reply_keyboard
-from models import get_session, Car
+from common.models import get_session, Car
 
 TOTAL = 1
 pattern = '\D\D\d\d\d\D\D'

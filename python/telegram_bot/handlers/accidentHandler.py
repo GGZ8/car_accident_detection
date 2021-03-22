@@ -1,7 +1,7 @@
 import logging
 
 from telegram import Location, Bot, ParseMode
-from secret import telegram_key
+from common.secret import telegram_key
 
 logger = logging.getLogger()
 

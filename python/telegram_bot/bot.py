@@ -2,11 +2,12 @@ import logging
 
 from handlers import addCarHandler, helpHandler, deleteCarHandler
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
-from ..secret import telegram_key
-from ..telegram_bot.handlers.listCarHandler import get_car
+from common.secret import telegram_key
+from telegram_bot.handlers.listCarHandler import get_car
+from common.settings import Setting
 
 logging.basicConfig(
-    #filename=f"{Setting.TELEGRAM_LOG_PATH}",
+    filename=Setting.TELEGRAM_LOG_PATH,
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )

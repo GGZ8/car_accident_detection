@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from sqlalchemy import Column, Integer, String, Boolean, create_engine, Float, ForeignKey, DateTime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import sessionmaker, scoped_session, relationship
-from settings import Setting
+from .settings import Setting
 
 db = SQLAlchemy()
 

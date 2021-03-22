@@ -4,13 +4,13 @@ import os
 from flask_bootstrap import Bootstrap
 from flask import Flask, render_template, jsonify
 
-from ..settings import Setting
-from ..secret import google_api
-from ..models import db, Accident, get_session
+from common.settings import Setting
+from common.secret import google_api
+from common.models import db, Accident, get_session
 
 os.makedirs(os.path.dirname(Setting.FLASK_LOG_PATH), exist_ok=True)
 logging.basicConfig(
-    #filename=Setting.FLASK_LOG_PATH,
+    filename=Setting.FLASK_LOG_PATH,
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
@@ -25,7 +25,7 @@ app.config.from_object(custom_config)
 bootstrap = Bootstrap(app)
 db.init_app(app)
 
-if not os.path.isfile(f"{Setting.DB_PATH}"):
+if not os.path.isfile(Setting.DB_PATH):
     db.create_all(app=app)
 
 

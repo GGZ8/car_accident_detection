@@ -47,9 +47,9 @@ void print_all(){
 
 void plotter_imu_data(){
   DEBUG_SERIAL.print(AcX);
-  DEBUG_SERIAL.print(" ");
+  DEBUG_SERIAL.print(",");
   DEBUG_SERIAL.print(AcY);
-  DEBUG_SERIAL.print(" ");
+  DEBUG_SERIAL.print(",");
   DEBUG_SERIAL.println(AcZ);
 }
 
