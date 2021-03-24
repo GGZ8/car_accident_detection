@@ -34,7 +34,7 @@ def start_bot():
     dp.add_handler(deleteCarHandler.delete_car_handler())
 
     dp.add_handler(CommandHandler('lista', get_car))
-    dp.add_handler(MessageHandler(Filters.text & (~Filters.command) & Filters.regex('^Lista auto$'), get_car))
+    dp.add_handler(MessageHandler(Filters.text & (~Filters.command) & Filters.regex('^Lista$'), get_car))
 
     # Start the Bot (polling of messages)
     # this call is non-blocking

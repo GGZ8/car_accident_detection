@@ -1,7 +1,7 @@
 from telegram import ReplyKeyboardMarkup, ParseMode, Update
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackContext
 
-reply_keyboard = [['Inserisci auto', 'Elimina auto', 'Lista auto', 'Aiuto']]
+reply_keyboard = [['➕ Inserisci', '❌ Elimina', 'Lista', '❔ Aiuto']]
 
 
 def help_command(update: Update, context: CallbackContext):
@@ -26,4 +26,4 @@ def get_help_handler():
 
 
 def get_help():
-    return MessageHandler(Filters.text & (~Filters.command) & Filters.regex('^Aiuto$'), help_command)
+    return MessageHandler(Filters.text & (~Filters.command) & Filters.regex('^❔ Aiuto$'), help_command)

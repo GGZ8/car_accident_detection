@@ -68,7 +68,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 def add_car_handler():
     conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(Filters.text & (~Filters.command) & Filters.regex('^Inserisci auto$'), add_car),
+        entry_points=[MessageHandler(Filters.text & (~Filters.command) & Filters.regex('^➕ Inserisci$'), add_car),
                       CommandHandler('inserisci', add_car)],
         states={
             TOTAL: [

@@ -19,12 +19,12 @@ void(* reboot) (void) = 0;  //Funzione che permette il riavvio
 
 //Pin utilizzati
 //Il modulo GPS usa la Serial1 per comunicare -> Rx1 = 19 e Tx1 = 18
-#define MPU_ADD 0x68      //  I2C address of the GY-521
-#define flame_pin A15      //  Input pin per la lettura del flame sensor
-#define light_pin A14      //  Input pin per la lettura del light sensor
-#define trigger_pin 8      //  Output pin trigger ultrasonic
-#define echo_pin 9         //  Input pin per la ricezione del trigger
-#define buz_pin 10         //  Output pin del buzzer
+#define MPU_ADD 0x68        //  I2C address of the GY-521
+#define flame_pin A15       //  Input pin per la lettura del flame sensor
+#define light_pin A14       //  Input pin per la lettura del light sensor
+#define trigger_pin 8       //  Output pin trigger ultrasonic
+#define echo_pin 9          //  Input pin per la ricezione del trigger
+#define buz_pin 10          //  Output pin del buzzer
 
 //Variabile usata per controllare i dati a intervalli regolari
 unsigned long prev_millis, fire_millis;
@@ -61,7 +61,7 @@ void setup()  {
   Wire.begin();
 	accelgyro.initialize();
   setup_imu();
-  Wire.setWireTimeout(3000,true); 
+  Wire.setWireTimeout(3000,true); //https://www.fpaynter.com/2020/07/i2c-hangup-bug-cured-miracle-of-miracles-film-at-11/
   Wire.clearWireTimeoutFlag();
 
   //Pin setup
@@ -188,10 +188,10 @@ bool check_parameters(){
  */
 void accident_detected(){
   tone(buz_pin, 500);
-  //Leggo i dati finchè non sono validi
   while(!update_gps_data()){}
   send_data();
-  delay(70); //Aspetto 70ms per dare il tempo al bridge di rispondere
+  //Aspetto 70ms per dare il tempo al bridge di rispondere
+  delay(70); 
   
   //Controllo che il bridge abbia ricevuto i dati
   while(ser_state != 3){
@@ -201,7 +201,9 @@ void accident_detected(){
       if(c == 'C' && ser_state == 1)  f_ser_state = 2;
       if(c == 'K' && ser_state == 2)  f_ser_state = 3;
     }
-    else{ //Se il bridge non mi conferma la ricezione aspetto 10 secondi e rinvio i dati
+    else{ 
+      //Se il bridge non mi conferma la ricezione aspetto 
+      //10 secondi e rinvio i dati
       delay(10000);
       send_data();
     }
@@ -210,7 +212,7 @@ void accident_detected(){
   noTone(buz_pin);
   //INCIDENTE SEGNALATO E RICEVUTO CORRETTAMENTE ASPETTO RESET
   delay(60000*10); //aspetto 10 minuti
-  reset_fun(); //Resetto le variabili
+  reset_fun();
 }
 
 /*

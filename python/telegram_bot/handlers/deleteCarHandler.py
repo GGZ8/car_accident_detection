@@ -71,7 +71,7 @@ def cancel(update: Update, context: CallbackContext):
 
 def delete_car_handler():
     conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(Filters.text & (~Filters.command) & Filters.regex('^Elimina auto$'), select_car),
+        entry_points=[MessageHandler(Filters.text & (~Filters.command) & Filters.regex('^❌ Elimina$'), select_car),
                       CommandHandler('elimina', select_car)],
         states={
             CHOOSE: [
