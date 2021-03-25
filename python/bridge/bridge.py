@@ -5,7 +5,8 @@ from datetime import datetime
 from common.models import get_session, Accident
 from telegram_bot.handlers.accidentHandler import accident_message
 from dateutil import tz
-from aiFire import detect_fire
+from AI import detect_fire, detect_near_accidents
+
 
 
 class Bridge:
@@ -43,11 +44,15 @@ class Bridge:
                 elif value == b'\xFF':
                     self.check_fire()
                     self.in_buffer = []
+                elif value == b'\xFE':
+                    self.check_near_accidents()
+                    self.in_buffer = []
                 else:
                     self.in_buffer.append(value)
 
     def check_integrity(self, header):
         if len(self.in_buffer) < 2:
+            print(f'ERROR: package drop, too short')
             print(self.in_buffer)
             return False
 
@@ -60,7 +65,7 @@ class Bridge:
         return True
 
     def check_fire(self):
-        if not self.check_integrity(b'\xFE'):
+        if not self.check_integrity(header=b'\xFE'):
             return False
         data = self.in_buffer[2:]
 
@@ -75,7 +80,7 @@ class Bridge:
             self.ser.write(b'FIRE')
 
     def accident_report(self):
-        if not self.check_integrity(b'\x7F'):
+        if not self.check_integrity(header=b'\x7F'):
             return False
 
         self.ser.write(b'ACK')
@@ -98,6 +103,7 @@ class Bridge:
         print(
             f'lat={lat}, lng={lng}, frontal={frontal}, tilt={tilt}, fire={fire}, fall={fall}, tmp={tmp}, targa={license_plate}, data={date_time}')
 
+        #chiedi associazione del client id al server flask
         with get_session() as session:
             accident = Accident(car_id=license_plate, date_time=date_time, temperature=tmp, fire=fire, frontal=frontal,
                                 tilt=tilt, fall=fall, lat=lat, lng=lng, reported=False)
@@ -105,6 +111,22 @@ class Bridge:
             session.commit()
             if accident.car.chat_id is not None:
                 accident_message(accident)
+
+    def check_near_accidents(self):
+        if not self.check_integrity(header=b'\xFD'):
+            return False
+
+        data = self.in_buffer[2:]
+        lat = round(struct.unpack('f', b''.join(data[:4]))[0], 6)
+        lng = round(struct.unpack('f', b''.join(data[4:8]))[0], 6)
+        speed = int.from_bytes(data[8], byteorder='little')
+        car_pos = (lat, lng)
+        #print(lat, lng, speed)
+        if detect_near_accidents(car_pos, speed):
+            print("ON")
+            self.ser.write(b'ON')
+        else:
+            self.ser.write(b'OFF')
 
 
 if __name__ == "__main__":

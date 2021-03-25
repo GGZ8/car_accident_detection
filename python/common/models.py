@@ -57,3 +57,11 @@ class Accident(db.Model):
             'lat': self.lat,
             'lng': self.lng,
         }
+
+    @property
+    def serialize_pos(self):
+        return {
+            'date_time': self.date_time.strftime("%d-%m-%YT%H:%M:%S"),
+            'lat': self.lat,
+            'lng': self.lng,
+        }

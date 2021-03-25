@@ -10,7 +10,7 @@ from common.models import db, Accident, get_session
 
 os.makedirs(os.path.dirname(Setting.FLASK_LOG_PATH), exist_ok=True)
 logging.basicConfig(
-    filename=Setting.FLASK_LOG_PATH,
+    #filename=Setting.FLASK_LOG_PATH,
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
@@ -63,7 +63,7 @@ def update():
                 session.commit()
                 return jsonify(data), 200
             else:
-                return {}, 204
+                return None, 204
         except Exception as e:
             logging.info(data)
             data['message'] = e
@@ -102,6 +102,22 @@ def solved(accident_id):
         except Exception as e:
             data['message'] = e
             return jsonify(data), 300
+
+
+@app.route('/api/accidents', methods=['GET'])
+def get_accidents():
+    data = {}
+    with get_session() as session:
+        try:
+            accidents = session.query(Accident).all()
+            if len(accidents):
+                data['accidents'] = [a.serialize_pos for a in accidents]
+                return jsonify(data), 200
+            else:
+                return None, 204
+        except Exception as e:
+            logging.info(e)
+            return None, 300
 
 
 if __name__ == '__main__':

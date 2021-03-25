@@ -25,9 +25,10 @@ void(* reboot) (void) = 0;  //Funzione che permette il riavvio
 #define trigger_pin 8       //  Output pin trigger ultrasonic
 #define echo_pin 9          //  Input pin per la ricezione del trigger
 #define buz_pin 10          //  Output pin del buzzer
+#define led_pin 30          //  Output pin del led di segnalazione incidente
 
 //Variabile usata per controllare i dati a intervalli regolari
-unsigned long prev_millis, fire_millis;
+unsigned long prev_millis, fire_millis, position_millis;
 
 //Variabili ultrasonic
 long time_passed;   //  Tempo che impieghera' il suono a percorrere una certa distanza
@@ -70,13 +71,16 @@ void setup()  {
   pinMode(trigger_pin, OUTPUT);
   pinMode(echo_pin, INPUT);
   pinMode(buz_pin, OUTPUT);
+  pinMode(led_pin, OUTPUT);
 
   digitalWrite(echo_pin, LOW);
   digitalWrite(trigger_pin, LOW);
+  digitalWrite(led_pin, LOW);
+  digitalWrite(32, LOW);
   noTone(buz_pin);
 
   time_passed = distance = Pitch = Roll = ser_state = f_ser_state = 0;
-  prev_millis = fire_millis = millis();
+  prev_millis = fire_millis = position_millis = millis();
   frontal = tilt = fire = fall = detection = false;
   
   //Soglie di attivazioni, devono essere modificate per funzionare in casi reali
@@ -102,24 +106,30 @@ void loop(){
     prev_millis = millis();
     update_ultrasonic_data();
     update_imu_data();
-    //print_imu_data();
-    if(millis() - fire_millis > 2000){
+    
+    /*if(millis() - fire_millis > 2000){
       fire_millis = millis();
       update_flame_light_data();
       send_flame_light_temp_data();
       delay(70);
-    }
-    
-    //Possibili problemi di lettura dati ogni tanto
-    /*if(Tmp > 30 && AcZ < 0.2){
-      tone(buz_pin, 500);
-      print_imu_data();
-      delay(500);
-      noTone(buz_pin);
-      delay(5000);
     }*/
 
-    if(check_parameters()){
+    if(millis() - position_millis > 2000){
+      position_millis = millis();
+      DEBUG_SERIAL.println("DATI GPS");
+      while(!update_gps_data() && !(millis() - position_millis > 5000)){}
+      if(gps.time.isValid()) send_position_data();
+      //ACCENDI LED
+      delay(70);
+      if(near_accident_led()){
+        digitalWrite(led_pin, HIGH);
+      }
+      else{
+        digitalWrite(led_pin, LOW);
+      }
+    }
+
+    /*if(check_parameters()){
       if(DEBUG){
         while(!update_gps_data()){}
         print_all();
@@ -132,7 +142,7 @@ void loop(){
       else{
         accident_detected();
       }
-    }
+    }*/
   }
 }
 
@@ -143,6 +153,19 @@ void loop(){
  * viene segnalato
  */
 bool check_parameters(){
+  //Possibili problemi di lettura dati ogni tanto
+  if(Tmp == 36.53){
+    tone(buz_pin, 500);
+    delay(500);
+    noTone(buz_pin);
+    delay(200);
+    tone(buz_pin, 500);
+    delay(500);
+    noTone(buz_pin);
+    delay(5000);
+    return false;
+  }
+  
   //Incidente frontale o tamponamento
   if(distance <= threshold.distance)  frontal = true;
 
@@ -159,18 +182,7 @@ bool check_parameters(){
   if(AcY - prec_acy > 1.2) detection = true;
 
   //Controllo se è stato rilevato un fuoco
-  while(Serial.available() > 0){
-    uint8_t c = Serial.read();
-    if(c == 'F' && ser_state == 0)  f_ser_state = 1;
-    if(c == 'I' && ser_state == 1)  f_ser_state = 2;
-    if(c == 'R' && ser_state == 2)  f_ser_state = 3;
-    if(c == 'E' && ser_state == 3)  f_ser_state = 4;
-    ser_state = f_ser_state ;
-  }
-  if(ser_state == 4) {
-    fire = true;
-    f_ser_state = ser_state = 0;
-  }
+  fire = fire_read();
  
   prec_acx = AcX;
   prec_acy = AcY;
@@ -192,23 +204,8 @@ void accident_detected(){
   send_data();
   //Aspetto 70ms per dare il tempo al bridge di rispondere
   delay(70); 
-  
   //Controllo che il bridge abbia ricevuto i dati
-  while(ser_state != 3){
-    if(Serial.available() > 0){
-      uint8_t c = Serial.read();
-      if(c == 'A' && ser_state == 0)  f_ser_state = 1;
-      if(c == 'C' && ser_state == 1)  f_ser_state = 2;
-      if(c == 'K' && ser_state == 2)  f_ser_state = 3;
-    }
-    else{ 
-      //Se il bridge non mi conferma la ricezione aspetto 
-      //10 secondi e rinvio i dati
-      delay(10000);
-      send_data();
-    }
-    ser_state = f_ser_state;
-  }
+  bridge_ack();
   noTone(buz_pin);
   //INCIDENTE SEGNALATO E RICEVUTO CORRETTAMENTE ASPETTO RESET
   delay(60000*10); //aspetto 10 minuti

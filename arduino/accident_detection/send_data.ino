@@ -67,3 +67,31 @@ void send_flame_light_temp_data(){
     Serial.write(data[i]);
   }
 }
+
+void send_position_data(){
+  float lat_tmp = gps.location.lat();
+  float lng_tmp = gps.location.lng();
+  uint8_t car_speed = gps.speed.kmph();
+  byte * lat = (byte *) &lat_tmp;
+  byte * lng = (byte *) &lng_tmp;
+
+  Serial.write(0xFD);
+  Serial.write(0x09);
+
+  //Latitudine
+  Serial.write(lat[0]);
+  Serial.write(lat[1]);
+  Serial.write(lat[2]);
+  Serial.write(lat[3]);
+  //Longitudine
+  Serial.write(lng[0]);
+  Serial.write(lng[1]);
+  Serial.write(lng[2]);
+  Serial.write(lng[3]);
+  //Velocità
+  Serial.write(car_speed);
+  
+
+  Serial.write(0xFE);
+  //Ragionevole pensare che le coordinate non siano 255 e 253
+}
