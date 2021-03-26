@@ -3,7 +3,6 @@ import os
 
 from flask_bootstrap import Bootstrap
 from flask import Flask, render_template, jsonify
-
 from common.settings import Setting
 from common.secret import google_api
 from common.models import db, Accident, get_session
@@ -21,8 +20,9 @@ custom_config = Setting()
 
 app_name = "Car Accident Detection"
 app = Flask(app_name)
-app.config.from_object(custom_config)
 bootstrap = Bootstrap(app)
+
+app.config.from_object(custom_config)
 db.init_app(app)
 
 if not os.path.isfile(Setting.DB_PATH):
@@ -39,7 +39,6 @@ def index():
             session.commit()
         except Exception as e:
             logging.info(f"ERROR: {e}")
-    print(Setting.DEBUG)
     return render_template('index.html', google_api=google_api, development=Setting.DEBUG)
 
 
@@ -63,7 +62,7 @@ def update():
                 session.commit()
                 return jsonify(data), 200
             else:
-                return None, 204
+                return {}, 204
         except Exception as e:
             logging.info(data)
             data['message'] = e
@@ -102,22 +101,6 @@ def solved(accident_id):
         except Exception as e:
             data['message'] = e
             return jsonify(data), 300
-
-
-@app.route('/api/accidents', methods=['GET'])
-def get_accidents():
-    data = {}
-    with get_session() as session:
-        try:
-            accidents = session.query(Accident).all()
-            if len(accidents):
-                data['accidents'] = [a.serialize_pos for a in accidents]
-                return jsonify(data), 200
-            else:
-                return None, 204
-        except Exception as e:
-            logging.info(e)
-            return None, 300
 
 
 if __name__ == '__main__':

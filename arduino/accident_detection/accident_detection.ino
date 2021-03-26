@@ -76,7 +76,6 @@ void setup()  {
   digitalWrite(echo_pin, LOW);
   digitalWrite(trigger_pin, LOW);
   digitalWrite(led_pin, LOW);
-  digitalWrite(32, LOW);
   noTone(buz_pin);
 
   time_passed = distance = Pitch = Roll = ser_state = f_ser_state = 0;
@@ -107,29 +106,29 @@ void loop(){
     update_ultrasonic_data();
     update_imu_data();
     
-    /*if(millis() - fire_millis > 2000){
+    if(millis() - fire_millis > 2000){
       fire_millis = millis();
       update_flame_light_data();
       send_flame_light_temp_data();
       delay(70);
-    }*/
-
-    if(millis() - position_millis > 2000){
-      position_millis = millis();
-      DEBUG_SERIAL.println("DATI GPS");
-      while(!update_gps_data() && !(millis() - position_millis > 5000)){}
-      if(gps.time.isValid()) send_position_data();
-      //ACCENDI LED
-      delay(70);
-      if(near_accident_led()){
-        digitalWrite(led_pin, HIGH);
-      }
-      else{
-        digitalWrite(led_pin, LOW);
-      }
     }
 
-    /*if(check_parameters()){
+    if(millis() - position_millis > 20000){
+      position_millis = millis();
+      while(!update_gps_data() && !(millis() - position_millis > 5000)){}
+      if(gps.time.isValid()){
+        send_position_data();
+        delay(100);
+        if(near_accident_led()){
+          digitalWrite(led_pin, HIGH);
+        }
+        else{
+          digitalWrite(led_pin, LOW);
+        }
+      }
+   }
+
+    if(check_parameters()){
       if(DEBUG){
         while(!update_gps_data()){}
         print_all();
@@ -142,7 +141,7 @@ void loop(){
       else{
         accident_detected();
       }
-    }*/
+    }
   }
 }
 
@@ -202,8 +201,8 @@ void accident_detected(){
   tone(buz_pin, 500);
   while(!update_gps_data()){}
   send_data();
-  //Aspetto 70ms per dare il tempo al bridge di rispondere
-  delay(70); 
+  //Aspetto 1 secondo per dare il tempo al bridge di rispondere
+  delay(1000); 
   //Controllo che il bridge abbia ricevuto i dati
   bridge_ack();
   noTone(buz_pin);

@@ -1,18 +1,22 @@
+from time import sleep
+
+import requests
 import serial
 import serial.tools.list_ports
 import struct
 from datetime import datetime
-from common.models import get_session, Accident
-from telegram_bot.handlers.accidentHandler import accident_message
 from dateutil import tz
 from AI import detect_fire, detect_near_accidents
-
+from common.settings import Setting
 
 
 class Bridge:
 
     def __init__(self):
+        self.api_ip = '192.168.1.18:8000'
+        self.api_version = Setting.API_VERSION
         self.in_buffer = []
+        self.data = []
         self.ser = None
         self.port_name = None
         self.from_zone = tz.gettz('UTC')
@@ -44,7 +48,7 @@ class Bridge:
                 elif value == b'\xFF':
                     self.check_fire()
                     self.in_buffer = []
-                elif value == b'\xFE':
+                elif value == b'\xFC':
                     self.check_near_accidents()
                     self.in_buffer = []
                 else:
@@ -62,17 +66,18 @@ class Bridge:
             print(f'ERROR: package drop, invalid lenght -> {data_count} != {num_val}')
             return False
 
+        self.data = self.in_buffer[2:]
         return True
 
     def check_fire(self):
+        print("FIRE")
         if not self.check_integrity(header=b'\xFE'):
             return False
-        data = self.in_buffer[2:]
 
-        flame = int.from_bytes(data[0], byteorder='little')
-        light = int.from_bytes(data[1], byteorder='little')
-        temp = int.from_bytes(data[2], byteorder='little')
-        sign = bool.from_bytes(data[3], byteorder='little')
+        flame = int.from_bytes(self.data[0], byteorder='little')
+        light = int.from_bytes(self.data[1], byteorder='little')
+        temp = int.from_bytes(self.data[2], byteorder='little')
+        sign = bool.from_bytes(self.data[3], byteorder='little')
         if sign:
             temp = -temp
 
@@ -80,53 +85,45 @@ class Bridge:
             self.ser.write(b'FIRE')
 
     def accident_report(self):
+        print("ACCIDENT REPORT")
         if not self.check_integrity(header=b'\x7F'):
             return False
 
-        self.ser.write(b'ACK')
-        data = self.in_buffer[2:]
-
-        lat = round(struct.unpack('f', b''.join(data[:4]))[0], 6)
-        lng = round(struct.unpack('f', b''.join(data[4:8]))[0], 6)
-        hour = struct.unpack('I', b''.join(data[8:12]))[0]
-        date = struct.unpack('I', b''.join(data[12:16]))[0]
-        frontal = bool.from_bytes(data[16], byteorder='little')
-        tilt = bool.from_bytes(data[17], byteorder='little')
-        fire = bool.from_bytes(data[18], byteorder='little')
-        fall = bool.from_bytes(data[19], byteorder='little')
-        tmp = round(struct.unpack('f', b''.join(data[20:24]))[0], 2)
-        license_plate = (struct.unpack('7s', b''.join(data[24:]))[0]).decode('utf-8')
+        lat = round(struct.unpack('f', b''.join(self.data[:4]))[0], 6)
+        lng = round(struct.unpack('f', b''.join(self.data[4:8]))[0], 6)
+        hour = struct.unpack('I', b''.join(self.data[8:12]))[0]
+        date = struct.unpack('I', b''.join(self.data[12:16]))[0]
+        frontal = bool.from_bytes(self.data[16], byteorder='little')
+        tilt = bool.from_bytes(self.data[17], byteorder='little')
+        fire = bool.from_bytes(self.data[18], byteorder='little')
+        fall = bool.from_bytes(self.data[19], byteorder='little')
+        temp = round(struct.unpack('f', b''.join(self.data[20:24]))[0], 2)
+        license_plate = (struct.unpack('7s', b''.join(self.data[24:]))[0]).decode('utf-8')
         date_time = datetime.combine(datetime.strptime(str(date), '%d%m%y'),
                                      datetime.strptime(str(hour), '%H%M%S%f').time())
         date_time = date_time.replace(tzinfo=self.from_zone)
         date_time = date_time.astimezone(self.to_zone)
-        print(
-            f'lat={lat}, lng={lng}, frontal={frontal}, tilt={tilt}, fire={fire}, fall={fall}, tmp={tmp}, targa={license_plate}, data={date_time}')
-
-        #chiedi associazione del client id al server flask
-        with get_session() as session:
-            accident = Accident(car_id=license_plate, date_time=date_time, temperature=tmp, fire=fire, frontal=frontal,
-                                tilt=tilt, fall=fall, lat=lat, lng=lng, reported=False)
-            session.add(accident)
-            session.commit()
-            if accident.car.chat_id is not None:
-                accident_message(accident)
+        key = ('lat', 'lng', 'frontal', 'tilt', 'fire', 'fall', 'temp', 'license_plate', 'date')
+        value = (lat, lng, frontal, tilt, fire, fall, temp, license_plate, date_time.__str__())
+        json_data = dict(zip(key, value))
+        print(json_data)
+        while requests.post(f'http://{self.api_ip}/{self.api_version}/accidents', json=json_data).status_code != 200:
+            sleep(2)
+        self.ser.write(b'ACK')
 
     def check_near_accidents(self):
+        print("SEARCH NEAR ACCIDENT")
         if not self.check_integrity(header=b'\xFD'):
             return False
 
-        data = self.in_buffer[2:]
-        lat = round(struct.unpack('f', b''.join(data[:4]))[0], 6)
-        lng = round(struct.unpack('f', b''.join(data[4:8]))[0], 6)
-        speed = int.from_bytes(data[8], byteorder='little')
+        lat = round(struct.unpack('f', b''.join(self.data[:4]))[0], 6)
+        lng = round(struct.unpack('f', b''.join(self.data[4:8]))[0], 6)
+        speed = int.from_bytes(self.data[8], byteorder='little')
         car_pos = (lat, lng)
-        #print(lat, lng, speed)
-        if detect_near_accidents(car_pos, speed):
-            print("ON")
+        response = requests.get(f'http://{self.api_ip}/{self.api_version}/accidents')
+        if response.status_code == 200 and detect_near_accidents(car_pos, speed, response):
+            print("Near Accident detected")
             self.ser.write(b'ON')
-        else:
-            self.ser.write(b'OFF')
 
 
 if __name__ == "__main__":

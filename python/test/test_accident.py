@@ -1,14 +1,10 @@
-import time
-
-from common.models import get_session, Accident
-from telegram_bot.handlers.accidentHandler import accident_message
+import requests
 from datetime import datetime
+from dateutil import tz
 
-time.sleep(5)
-
-with get_session() as session:
-    accident = Accident(car_id="AA111AA", date_time=datetime.now(), temperature=40, fire=False, frontal=True,
-                        tilt=False, fall=False, lat=44.611631, lng=10.936206, reported=False)
-    session.add(accident)
-    session.commit()
-    #accident_message(accident)
+key = ('lat', 'lng', 'frontal', 'tilt', 'fire', 'fall', 'temp', 'license_plate', 'date')
+date = datetime.now().replace(microsecond=0).astimezone(tz.tzlocal()).strftime('%Y-%m-%d %H:%M:%S%z')
+value = (44.624347, 10.927056, True, False, False, False, 40, "AA111BA", date)
+json_data = dict(zip(key, value))
+print(json_data)
+response = requests.post('http://192.168.1.18:8000/api/v1/accidents', json=json_data)

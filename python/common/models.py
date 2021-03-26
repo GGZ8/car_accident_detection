@@ -23,7 +23,7 @@ def get_session():
 class Car(db.Model):
     __tablename__ = 'car'
     license_plate = Column(String(length=7), primary_key=True)
-    chat_id = Column(Integer)
+    chat_id = Column(Integer, nullable=True)
 
 
 class Accident(db.Model):
@@ -61,7 +61,7 @@ class Accident(db.Model):
     @property
     def serialize_pos(self):
         return {
-            'date_time': self.date_time.strftime("%d-%m-%YT%H:%M:%S"),
+            'date': self.date_time.strftime("%d-%m-%YT%H:%M:%S"),
             'lat': self.lat,
             'lng': self.lng,
         }

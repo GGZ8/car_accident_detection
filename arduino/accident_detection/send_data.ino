@@ -92,6 +92,6 @@ void send_position_data(){
   Serial.write(car_speed);
   
 
-  Serial.write(0xFE);
+  Serial.write(0xFC);
   //Ragionevole pensare che le coordinate non siano 255 e 253
 }

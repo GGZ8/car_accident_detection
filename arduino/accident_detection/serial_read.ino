@@ -1,6 +1,5 @@
 bool fire_read(){
-  bool ret = false;
-  while(Serial.available() > 0){
+  while(Serial.available()){
     uint8_t c = Serial.read();
     if(c == 'F' && ser_state == 0)  f_ser_state = 1;
     if(c == 'I' && ser_state == 1)  f_ser_state = 2;
@@ -9,16 +8,16 @@ bool fire_read(){
     ser_state = f_ser_state ;
   }
   if(ser_state == 4) {
-    ret = true;
     f_ser_state = ser_state = 0;
+    return true;
   }
-  return ret;
+  return false;
 }
 
 
 void bridge_ack(){
   while(ser_state != 3){
-    if(Serial.available() > 0){
+    if(Serial.available()){
       uint8_t c = Serial.read();
       if(c == 'A' && ser_state == 0)  f_ser_state = 1;
       if(c == 'C' && ser_state == 1)  f_ser_state = 2;
@@ -35,20 +34,16 @@ void bridge_ack(){
 }
 
 bool near_accident_led(){
-  bool ret;
-  while(Serial.available() > 0){
+  bool ret = false;
+  while(Serial.available()){
     uint8_t c = Serial.read();
-    if(ser_state == 0 && c == 'O') f_ser_state = 1;
-    if(ser_state == 1 && c == 'N') f_ser_state = 2;
-    if(ser_state == 1 && c == 'F') f_ser_state = 3;
-    if(ser_state == 3 && c == 'F') f_ser_state = 4;
-    if(ser_state == 4 && c == 'O') f_ser_state = 1;
-    if(ser_state == 2 && c == 'O') f_ser_state = 1;
-
-    if(f_ser_state == 2 && ser_state == 1) ret = true;
-    if(f_ser_state == 4 && ser_state == 3) ret = false;
-
-    f_ser_state = ser_state;
+    if(c == 'O' && ser_state == 0) f_ser_state = 1;
+    if(c == 'N' && ser_state == 1) f_ser_state = 2;
+    
+    if(f_ser_state == 2) ret = true;
+    else ret = false;
+    
+    ser_state = f_ser_state;
   }
   f_ser_state = ser_state = 0;
 

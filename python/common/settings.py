@@ -14,17 +14,19 @@ class Setting:
     FLASK_APP = 'app.py'
     FLASK_RUN_HOST = '0.0.0.0'
     FLASK_RUN_PORT = 80
+    FLASK_RUN_API_PORT = 8000
 
-    FLASK_DEBUG = 0
+    FLASK_DEBUG = 1
     FLASK_ENV = "development"
     #FLASK_ENV = "production"
 
     DEBUG = False
     TESTING = True
 
-    SESSION_TYPE = 'sqlalchemy' #'redis'
+    SESSION_TYPE = 'sqlalchemy'
 
     FLASK_LOG_PATH = f"{current_dir}/log/flask_log.log"
+    FLASK_API_LOG_PATH = f"{current_dir}/log/flask_api_log.log"
     TELEGRAM_LOG_PATH = f"{current_dir}/log/telegram_log.log"
 
     # Database
@@ -35,5 +37,6 @@ class Setting:
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-#    CACHE_TYPE = "simple"  # Flask-Caching related configs
     CACHE_DEFAULT_TIMEOUT = 100
+
+    API_VERSION = 'api/v1'
