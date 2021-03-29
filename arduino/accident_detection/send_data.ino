@@ -1,4 +1,12 @@
-
+/*
+ * Funzione che invia i dati relativi all'incidente se vienen rilevato
+ * Questa funzione invia un pacchetto dati sulla seriale al bridge con i sequenti dati:
+ * - LAT e LNG
+ * - DATA e ORA
+ * - Tipo di incidente 
+ * - Temperatura del veiocolo
+ * - Targa
+ */
 void send_data(){
   uint32_t hour_tmp = gps.time.value();
   uint32_t date_tmp = gps.date.value();
@@ -54,7 +62,13 @@ void send_data(){
 }
 
 
-
+/*
+ * Funzione che i invia i dati relativi agli incidendi, i dati del
+ * flame sensor e del photoresistor vengono mappati per permettere
+ * un'invio corretto dei dati, e infine viene inviata la temperatura
+ * come uint8_t e un ulteriore byte per segnalare se la temperatura 
+ * è negativa
+ */
 void send_flame_light_temp_data(){
   uint8_t flame = map(flame_val, 0, 1024, 0, 253);
   uint8_t light = map(light_val, 0, 1024, 0, 253);
@@ -68,6 +82,11 @@ void send_flame_light_temp_data(){
   }
 }
 
+
+/*
+ * Funzione che invia dati relativi alla posizione e alla velocità
+ * della vettura per evrificare se sono presenti incidenti nelle vicinanze
+ */
 void send_position_data(){
   float lat_tmp = gps.location.lat();
   float lng_tmp = gps.location.lng();

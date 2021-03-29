@@ -1,12 +1,18 @@
 //IMU e comunicazione seriale
-#include "Wire.h"
+#include "I2Cdev.h"
 #include "MPU6050.h"
+
+// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
+// is used in I2Cdev.h
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+    #include "Wire.h"
+#endif
 
 //Importazione dei moduli necessari
 //GPS ublox Neo-6m
 #include "TinyGPS++.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #define CALIBRATION 0
 #define DEBUG_SERIAL if(DEBUG)Serial
 
@@ -60,10 +66,9 @@ void setup()  {
     
   //Inizializzazione dell'accelerometro
   Wire.begin();
+  accelgyro.setSleepEnabled(false);
 	accelgyro.initialize();
   setup_imu();
-  Wire.setWireTimeout(3000,true); //https://www.fpaynter.com/2020/07/i2c-hangup-bug-cured-miracle-of-miracles-film-at-11/
-  Wire.clearWireTimeoutFlag();
 
   //Pin setup
   pinMode(flame_pin, INPUT);
@@ -113,7 +118,7 @@ void loop(){
       delay(70);
     }
 
-    if(millis() - position_millis > 20000){
+    if(millis() - position_millis > 60000){
       position_millis = millis();
       while(!update_gps_data() && !(millis() - position_millis > 5000)){}
       if(gps.time.isValid()){
@@ -151,20 +156,7 @@ void loop(){
  * Se presenti, legge i dati sulla seriale e se riceve la stringa 'FIRE' 
  * viene segnalato
  */
-bool check_parameters(){
-  //Possibili problemi di lettura dati ogni tanto
-  if(Tmp == 36.53){
-    tone(buz_pin, 500);
-    delay(500);
-    noTone(buz_pin);
-    delay(200);
-    tone(buz_pin, 500);
-    delay(500);
-    noTone(buz_pin);
-    delay(5000);
-    return false;
-  }
-  
+bool check_parameters(){ 
   //Incidente frontale o tamponamento
   if(distance <= threshold.distance)  frontal = true;
 

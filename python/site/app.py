@@ -55,7 +55,6 @@ def update():
         try:
             accidents = session.query(Accident).filter_by(reported=False).all()
             if len(accidents):
-                data['tot'] = len(accidents)
                 data['accidents'] = [a.serialize for a in accidents]
                 for a in accidents:
                     a.reported = True

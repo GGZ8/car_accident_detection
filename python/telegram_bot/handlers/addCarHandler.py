@@ -9,6 +9,7 @@ from telegram.ext import (
     ConversationHandler,
     CallbackContext,
 )
+
 from .helpHandler import reply_keyboard as default_reply_keyboard
 from common.models import get_session, Car
 
@@ -46,8 +47,14 @@ def read_license_plate(update: Update, context: CallbackContext) -> int:
                     msg = f"🚗 Auto con targa *{text}* aggiunta correttamente"
                     val = ConversationHandler.END
                 else:
-                    msg = f"Impossibile registrare 🚗 *{text}*, esiste già\!"
-                    val = TOTAL
+                    if car.chat_id is not None:
+                        msg = f"*ERRORE* 🚗 *{text}* già registrata \!"
+                        val = TOTAL
+                    else:
+                        car.chat_id = chat_id
+                        session.commit()
+                        msg = f"🚗 Auto con targa *{text}* aggiunta correttamente"
+                        val = ConversationHandler.END
             except Exception as e:
                 logging.info(f"ERROR: {e}")
                 msg = f"Errore durante inserimento"

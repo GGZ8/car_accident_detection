@@ -177,7 +177,7 @@ window.setInterval(function(){
 
     statusCode : {
       200: function (data) {
-        for(let i = 0; i < data.tot; i++){
+        for(let i = 0; i < data.accidents.length; i++){
           updateMarkers(data.accidents[i]);
         }
         let audio = new Audio('./static/bip_sound.mp3');

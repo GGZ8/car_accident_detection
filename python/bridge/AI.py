@@ -20,16 +20,21 @@ def detect_fire(flame, light, temp):
 
 def detect_near_accidents(car_pos, speed, response):
     if speed >= 100:
+        delta_minutes = 30
         speed_threshold = 20
-    else:
+    elif speed >= 50:
+        delta_minutes = 20
         speed_threshold = 5
+    else:
+        delta_minutes = 10
+        speed_threshold = 2
 
     accident = False
     now = datetime.now()
     accidents = response.json()['accidents']
     for a in accidents:
         crash_time = datetime.strptime(a['date'], '%d-%m-%YT%H:%M:%S')
-        if crash_time + timedelta(minutes=30) > now:
+        if crash_time + timedelta(minutes=delta_minutes) > now:
             accident_pos = (a['lat'], a['lng'])
             if haversine(car_pos, accident_pos, unit=Unit.KILOMETERS) < speed_threshold:
                 accident = True

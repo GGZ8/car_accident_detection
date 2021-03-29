@@ -1,23 +1,15 @@
 void update_imu_data(){
-  // Inizio trasmissione con il dispositivo I2C
-  Wire.beginTransmission(MPU_ADD);
-  // Indirizzo di inizio della lettura
-  Wire.write(0x3B);
-  Wire.endTransmission(false);
-  // Chiedo di leggere 8 indirizzi perchè sono 2 per ogni dato 
-  Wire.requestFrom(MPU_ADD, 8, true);
-
-  //Leggo
-  int16_t acx = (uint8_t)Wire.read() << 8 | (uint8_t)Wire.read();
-  int16_t acy = (uint8_t)Wire.read() << 8 | (uint8_t)Wire.read();
-  int16_t acz = (uint8_t)Wire.read() << 8 | (uint8_t)Wire.read();
-  int16_t tmp = (uint8_t)Wire.read() << 8 | (uint8_t)Wire.read();
-
+  int16_t acx = accelgyro.getAccelerationX();
+  int16_t acy = accelgyro.getAccelerationY();
+  int16_t acz = accelgyro.getAccelerationZ();
+  int16_t tmp = accelgyro.getTemperature();
+  
   //Normalizing data
   float alpha = 0.5;
   float X = acx * alpha + (acx * (1.0 - alpha));
   float Y = acy * alpha + (acy * (1.0 - alpha)); 
   float Z = acz * alpha + (acz * (1.0 - alpha));
+  
   AcX = (float)acx / 16384.0;
   AcY = (float)acy / 16384.0;
   AcZ = (float)acz / 16384.0;

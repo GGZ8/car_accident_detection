@@ -163,11 +163,8 @@ void mpu_init(){
 }
 
 void setup_imu(){
-  Wire.beginTransmission(MPU_ADD);
-  Wire.write(0x6B);
-  Wire.write(0);
-  Wire.endTransmission(true);
-  
+  Wire.setWireTimeout(3000,true); //https://www.fpaynter.com/2020/07/i2c-hangup-bug-cured-miracle-of-miracles-film-at-11/
+  Wire.clearWireTimeoutFlag(); 
   if(!accelgyro.testConnection()){
     DEBUG_SERIAL.println("ERROR CONNETCING TO IMU: CHECK WIRING");
     DEBUG_SERIAL.println("TRYING REBOOTING..");
