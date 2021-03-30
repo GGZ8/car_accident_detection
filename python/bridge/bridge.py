@@ -108,7 +108,7 @@ class Bridge:
         json_data = dict(zip(key, value))
         print(json_data)
         while requests.post(f'http://{self.api_ip}/{self.api_version}/accidents', json=json_data).status_code != 200:
-            sleep(1)
+            sleep(2)
         self.ser.write(b'ACK')
 
     def check_near_accidents(self):
