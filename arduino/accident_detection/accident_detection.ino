@@ -12,7 +12,7 @@
 //GPS ublox Neo-6m
 #include "TinyGPS++.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define CALIBRATION 0
 #define DEBUG_SERIAL if(DEBUG)Serial
 
