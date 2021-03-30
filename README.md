@@ -52,4 +52,4 @@ Telegram è stato utilizzato per realizzare un bot che permetta di registrare le
 
 Se avviene un incidente all'utente arriverà un messaggio con la posizione dell'incidente come mostrato nel video. 
 
-<img src="documentation/static/telegram.gif" width="250">
+<img src="documentation/static/telegram.jpg" width="250">
