@@ -12,7 +12,7 @@
 //GPS ublox Neo-6m
 #include "TinyGPS++.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #define CALIBRATION 0
 #define DEBUG_SERIAL if(DEBUG)Serial
 
@@ -118,7 +118,7 @@ void loop(){
       delay(70);
     }
 
-    if(millis() - position_millis > 2000){
+    if(millis() - position_millis > 60000){
       position_millis = millis();
       while(!update_gps_data() && !(millis() - position_millis > 5000)){}
       if(gps.time.isValid()){
