@@ -2,6 +2,9 @@
 .idea/
 secret.py
 test.sqlite
+plot
+arch.drawio
+
 
 
 # Byte-compiled / optimized / DLL files

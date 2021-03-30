@@ -8,13 +8,8 @@ Il prototipo realizzato simula un dispositivo che tramite l'utilizzo di diversi 
 
 ## Requisiti
 
-```
-Bootstrap-Flask==1.5.1
-Flask==1.1.2
-Flask-SQLAlchemy==2.4.4
-SQLAlchemy==1.3.23
-pyserial==3.5
-python-telegram-bot==13.3
+```txt
+// requirements.txt
 ```
 
 
@@ -34,7 +29,7 @@ per determinare lo stato attuale della vettura e quando avviene un incidente il 
 Come si vede dall'immagine, viene mostrata una mappa con cui è possibile interagire selezionando il marker desiderato per ottenenere i dettagli sull'incidente. 
 È poi possibile contrassegnare come risolto un incidente eliminandolo dalla mappa. 
 
-<img src="documentation/web.png">
+<img src="documentation/static/web.png">
 
 ## Telegram
 
@@ -46,4 +41,4 @@ Telegram è stato utilizzato per realizzare un bot che permetta di registrare le
 
 Se avviene un incidente all'utente arriverà un messaggio con la posizione dell'incidente come mostrato nel video. 
 
-<img src="documentation/telegram.gif" width="250">
+<img src="documentation/static/telegram.gif" width="250">

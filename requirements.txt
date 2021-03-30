@@ -1,0 +1,12 @@
+Bootstrap-Flask==1.5.1
+Flask==1.1.2
+Flask-RESTful==0.3.8
+Flask-SQLAlchemy==2.5.1
+haversine==2.3.0
+marshmallow==3.11.1
+PyMySQL==1.0.2
+pyserial==3.5
+python-dateutil==2.8.1
+python-telegram-bot==13.4.1
+requests==2.25.1
+SQLAlchemy==1.4.3
