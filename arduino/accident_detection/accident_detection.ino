@@ -193,8 +193,8 @@ void accident_detected(){
   tone(buz_pin, 500);
   while(!update_gps_data()){}
   send_data();
-  //Aspetto 1 secondo per dare il tempo al bridge di rispondere
-  delay(1000); 
+  //Aspetto 500ms per dare il tempo al bridge di rispondere
+  delay(500); 
   //Controllo che il bridge abbia ricevuto i dati
   bridge_ack();
   noTone(buz_pin);
@@ -209,4 +209,5 @@ void accident_detected(){
 void reset_fun(){
   frontal = tilt = fire = fall = detection = false;
   ser_state = f_ser_state = 0;
+  prec_acx = prec_acy = prec_acz = 0;
 }

@@ -29,7 +29,7 @@ bool update_gps_data(){
   //Finchè ci sono dati sulla seriale li leggo
   while (Serial1.available() > 0){
     gps.encode(Serial1.read());
-    if(gps.date.isValid() && gps.location.isValid() && gps.time.isValid() && gps.time.isUpdated()){
+    if(gps.date.isValid() && gps.location.isValid() && gps.time.isValid() && gps.time.age() < 1000){
       //Quando sono riuscito a leggere correttamente i dati esco
       return true;
     }

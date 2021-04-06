@@ -55,9 +55,9 @@ class Bridge:
                     self.in_buffer.append(value)
 
     def check_integrity(self, header):
+        print(self.in_buffer)
         if len(self.in_buffer) < 2:
             print(f'ERROR: package drop, too short')
-            print(self.in_buffer)
             return False
 
         num_val = int.from_bytes(self.in_buffer[1], byteorder='little')
@@ -107,9 +107,9 @@ class Bridge:
         value = (lat, lng, frontal, tilt, fire, fall, temp, license_plate, date_time.__str__())
         json_data = dict(zip(key, value))
         print(json_data)
+        self.ser.write(b'ACK')
         while requests.post(f'http://{self.api_ip}/{self.api_version}/accidents', json=json_data).status_code != 200:
             sleep(1)
-        self.ser.write(b'ACK')
 
     def check_near_accidents(self):
         print("SEARCH NEAR ACCIDENT")

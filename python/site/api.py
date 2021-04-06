@@ -14,7 +14,7 @@ api = Api(app)
 
 os.makedirs(os.path.dirname(Setting.FLASK_API_LOG_PATH), exist_ok=True)
 logging.basicConfig(
-    filename=Setting.FLASK_API_LOG_PATH,
+    #filename=Setting.FLASK_API_LOG_PATH,
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
