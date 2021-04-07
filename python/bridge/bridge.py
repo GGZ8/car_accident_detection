@@ -6,8 +6,22 @@ import serial.tools.list_ports
 import struct
 from datetime import datetime
 from dateutil import tz
+from marshmallow import ValidationError, Schema, fields, validate
+
 from AI import detect_fire, detect_near_accidents
 from common.settings import Setting
+
+AccidentSchema = Schema().from_dict({
+    'lat': fields.Float(required=True),
+    'lng': fields.Float(required=True),
+    'frontal': fields.Bool(required=True),
+    'tilt': fields.Bool(required=True),
+    'fire': fields.Bool(required=True),
+    'fall': fields.Bool(required=True),
+    'temp': fields.Float(required=True),
+    'license_plate': fields.Str(required=True, validate=validate.Length(7)),
+    'date': fields.DateTime(required=True),
+})
 
 
 class Bridge:
@@ -21,6 +35,14 @@ class Bridge:
         self.port_name = None
         self.from_zone = tz.gettz('UTC')
         self.to_zone = tz.tzlocal()
+
+    def validate_json_data(self, body):
+        try:
+            AccidentSchema().load(body)
+            return True
+        except ValidationError as err:
+            print(err.messages)
+            return False
 
     def setup_serial(self):
         ports = serial.tools.list_ports.comports()
@@ -106,10 +128,11 @@ class Bridge:
         key = ('lat', 'lng', 'frontal', 'tilt', 'fire', 'fall', 'temp', 'license_plate', 'date')
         value = (lat, lng, frontal, tilt, fire, fall, temp, license_plate, date_time.__str__())
         json_data = dict(zip(key, value))
-        print(json_data)
-        self.ser.write(b'ACK')
-        while requests.post(f'http://{self.api_ip}/{self.api_version}/accidents', json=json_data).status_code != 200:
-            sleep(1)
+        if self.validate_json_data(json_data):
+            print(json_data)
+            self.ser.write(b'ACK')
+            while requests.post(f'http://{self.api_ip}/{self.api_version}/accidents', json=json_data).status_code != 200:
+                sleep(1)
 
     def check_near_accidents(self):
         print("SEARCH NEAR ACCIDENT")

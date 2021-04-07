@@ -123,7 +123,7 @@ void loop(){
       while(!update_gps_data() && !(millis() - position_millis > 5000)){}
       if(gps.time.isValid()){
         send_position_data();
-        delay(100);
+        delay(1000);
         if(near_accident_led()){
           digitalWrite(led_pin, HIGH);
         }
