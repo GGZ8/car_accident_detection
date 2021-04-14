@@ -72,7 +72,7 @@ void send_data(){
 void send_flame_light_temp_data(){
   uint8_t flame = map(flame_val, 0, 1024, 0, 253);
   uint8_t light = map(light_val, 0, 1024, 0, 253);
-  uint8_t temp = int(Tmp);
+  uint8_t temp = abs(int(Tmp));
   uint8_t data[] = {0xFE, 0x04, flame, light, temp, 0x00, 0xFF};
   if(temp < 0){
     data[5] = 0x01;
