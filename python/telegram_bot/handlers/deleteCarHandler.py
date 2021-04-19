@@ -53,7 +53,7 @@ def delete_car(update: Update, context: CallbackContext):
             else:
                 session.delete(car)
                 session.commit()
-                msg = f"Auto con targa *{text}* eliminata correttamente"
+                msg = f"❌ Auto con targa *{text}* eliminata correttamente"
         except Exception as e:
             logging.info(f"ERROR: {e}")
             msg = f"Errore durante l'eliminazione"
